@@ -66,6 +66,10 @@
                 <Users :size="16" :stroke-width="2" aria-hidden="true" />
                 {{ t('nav.admin') }}
               </router-link>
+              <router-link v-if="authStore.isSuperAdmin" to="/admin/tags" class="navbar-user-menu-item" @click="showUserMenu = false">
+                <Tags :size="16" :stroke-width="2" aria-hidden="true" />
+                {{ t('nav.tagAdmin') }}
+              </router-link>
               <div class="navbar-user-menu-divider"></div>
               <button class="navbar-user-menu-item navbar-user-logout" @click="logout">
                 <LogOut :size="16" :stroke-width="2" aria-hidden="true" />
@@ -120,6 +124,7 @@ import {
   ChevronDown,
   Settings,
   Users,
+  Tags,
   LogOut,
 } from 'lucide-vue-next'
 

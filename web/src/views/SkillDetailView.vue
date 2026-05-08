@@ -656,8 +656,7 @@ const showAddCollaboratorModal = ref(false)
 const showDeleteModal = ref(false)
 const showEditVersionModal = ref(false)
 const showEditTagsModal = ref(false)
-/** 暂时隐藏编辑标签入口，恢复时改为 true */
-const showTagEditButton = false
+const showTagEditButton = true
 const editVersionMode = ref<'description' | 'changelog'>('description')
 const editVersionForm = ref({ version: '', description: '', changelog: '' })
 const isEditingVersion = ref(false)

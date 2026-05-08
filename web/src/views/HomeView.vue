@@ -34,7 +34,7 @@
         <span class="text-fg-strong">skills</span>
         <span class="opacity-50 ml-2">ls -la</span>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="home-filter-actions">
         <button
           type="button"
           class="filter-chip"
@@ -44,6 +44,64 @@
           <Heart :size="14" :stroke-width="2" aria-hidden="true" />
           {{ t('index.favoriteOnly') }}
         </button>
+
+        <div
+          v-if="!isLoading && availableTags.length > 0"
+          class="tag-filter-dropdown"
+          :class="{ 'tag-filter-dropdown--open': showTagDropdown }"
+        >
+          <button
+            type="button"
+            class="filter-chip tag-filter-trigger"
+            :class="{ 'filter-chip--active': selectedTagIds.length > 0 }"
+            :aria-expanded="showTagDropdown"
+            aria-haspopup="listbox"
+            @click.stop="toggleTagDropdown"
+          >
+            <Tags :size="14" :stroke-width="2" aria-hidden="true" />
+            {{ t('index.tagsFilter') }}
+            <span v-if="selectedTagIds.length > 0" class="tag-filter-badge">{{ selectedTagIds.length }}</span>
+            <ChevronDown class="tag-filter-chevron" :size="14" :stroke-width="2.5" aria-hidden="true" />
+          </button>
+          <div
+            v-show="showTagDropdown"
+            class="tag-filter-panel"
+            role="listbox"
+            aria-multiselectable="true"
+            @click.stop
+          >
+            <div class="tag-filter-panel-header">
+              <p class="tag-filter-hint">{{ t('index.tagsFilterHint') }}</p>
+              <button
+                v-if="selectedTagIds.length > 0"
+                type="button"
+                class="tag-filter-clear"
+                :title="t('index.clearTags')"
+                @click="clearTagFilter"
+              >
+                <X class="tag-filter-clear-icon" :size="12" :stroke-width="2" aria-hidden="true" />
+                <span>{{ t('index.clearTags') }}</span>
+              </button>
+            </div>
+            <div class="tag-filter-options">
+              <button
+                v-for="tag in availableTags"
+                :key="tag.id"
+                type="button"
+                class="tag-filter-option"
+                :class="{ 'tag-filter-option--active': isTagSelected(tag.id) }"
+                role="option"
+                :aria-selected="isTagSelected(tag.id)"
+                @click="toggleTag(tag.id)"
+              >
+                <span class="tag-filter-option-check" aria-hidden="true">
+                  <Check v-if="isTagSelected(tag.id)" :size="14" :stroke-width="2.5" />
+                </span>
+                <span class="tag-filter-option-label">{{ tag.name }}</span>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -64,6 +122,7 @@
         <div class="empty-state" style="grid-column: 1 / -1;">
           <div class="empty-state-icon">📦</div>
           <p v-if="searchQuery" class="empty-state-text">{{ t('index.noResults', { q: searchQuery }) }}</p>
+          <p v-else-if="skillsStore.skills.length > 0" class="empty-state-text">{{ t('index.noFilterMatch') }}</p>
           <template v-else>
             <p class="empty-state-text">{{ t('index.noSkills') }}</p>
             <router-link to="/publish" class="btn btn-primary mt-6">
@@ -92,6 +151,9 @@
               <span class="skill-card-owner">
                 <User :size="14" :stroke-width="2" aria-hidden="true" />
                 {{ skill.owner?.name || skill.owner?.username || t('state.unknown') }}
+              </span>
+              <span v-if="skill.tags?.length" class="skill-card-tags">
+                <span v-for="tag in skill.tags" :key="tag.id" class="skill-card-tag">{{ tag.name }}</span>
               </span>
               <span class="skill-card-stats">
                 <span class="skill-card-stat" :title="t('index.downloadCount')">
@@ -123,23 +185,48 @@
 </template>
 
 <script setup lang="ts">
-import { X, Heart, Plus, User, Download } from 'lucide-vue-next'
-import { ref, computed, onMounted } from 'vue'
+import { X, Heart, Plus, User, Download, Tags, ChevronDown, Check } from 'lucide-vue-next'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useSkillsStore } from '@/stores/skills'
 import { useI18n } from '@/composables/useI18n'
 import { formatDate } from '@/utils/date'
+import type { Tag } from '@/services/api'
 
 const skillsStore = useSkillsStore()
 const { t, currentLang } = useI18n()
 const searchQuery = ref('')
 const onlyFavorites = ref(false)
+const selectedTagIds = ref<number[]>([])
+const showTagDropdown = ref(false)
 const isLoading = ref(true)
+
+/** 当前列表中出现的标签（与可见 Skill 一致，不额外请求 /tags） */
+const availableTags = computed(() => {
+  const map = new Map<number, Tag>()
+  for (const skill of skillsStore.skills) {
+    for (const tag of skill.tags || []) {
+      if (!map.has(tag.id)) {
+        map.set(tag.id, tag)
+      }
+    }
+  }
+  return [...map.values()].sort((a, b) => a.name.localeCompare(b.name))
+})
 
 const filteredSkills = computed(() => {
   let result = skillsStore.skills
 
   if (onlyFavorites.value) {
     result = result.filter(skill => skill.is_favorited)
+  }
+
+  const tagIds = selectedTagIds.value
+  if (tagIds.length > 0) {
+    const need = new Set(tagIds)
+    result = result.filter((skill) => {
+      const have = (skill.tags || []).map((t) => t.id)
+      return have.some((id) => need.has(id))
+    })
   }
 
   if (searchQuery.value) {
@@ -152,6 +239,36 @@ const filteredSkills = computed(() => {
 
   return result
 })
+
+function isTagSelected(id: number) {
+  return selectedTagIds.value.includes(id)
+}
+
+function toggleTag(id: number) {
+  const cur = selectedTagIds.value
+  const i = cur.indexOf(id)
+  if (i === -1) {
+    selectedTagIds.value = [...cur, id]
+  } else {
+    selectedTagIds.value = cur.filter((x) => x !== id)
+  }
+}
+
+function clearTagFilter() {
+  selectedTagIds.value = []
+}
+
+function toggleTagDropdown() {
+  showTagDropdown.value = !showTagDropdown.value
+}
+
+function closeTagDropdown() {
+  showTagDropdown.value = false
+}
+
+function onDocumentClick() {
+  closeTagDropdown()
+}
 
 function clearSearch() {
   searchQuery.value = ''
@@ -166,8 +283,13 @@ function truncateDescription(desc: string | null | undefined): string {
 }
 
 onMounted(async () => {
+  document.addEventListener('click', onDocumentClick)
   await skillsStore.fetchSkills()
   isLoading.value = false
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', onDocumentClick)
 })
 </script>
 
@@ -231,5 +353,184 @@ onMounted(async () => {
   background: rgba(251, 191, 36, 0.12);
   border: 1px solid rgba(251, 191, 36, 0.3);
   letter-spacing: 0.04em;
+}
+
+.skill-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+  max-width: 12rem;
+}
+.skill-card-tag {
+  font-size: 0.625rem;
+  line-height: 1.2;
+  padding: 0.15rem 0.45rem;
+  border-radius: 9999px;
+  background: rgba(var(--color-neon-rgb), 0.1);
+  border: 1px solid rgba(var(--color-neon-rgb), 0.22);
+  color: var(--color-neon-400);
+  white-space: nowrap;
+}
+
+.home-filter-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.tag-filter-dropdown {
+  position: relative;
+}
+
+.tag-filter-trigger {
+  gap: 0.35rem;
+}
+
+.tag-filter-badge {
+  min-width: 1.125rem;
+  height: 1.125rem;
+  padding: 0 0.25rem;
+  border-radius: 9999px;
+  background: rgba(255, 117, 181, 0.25);
+  color: #ff75b5;
+  font-size: 0.625rem;
+  font-weight: 600;
+  line-height: 1.125rem;
+  text-align: center;
+}
+
+.tag-filter-chevron {
+  flex-shrink: 0;
+  opacity: 0.75;
+  transition: transform 0.2s ease;
+}
+
+.tag-filter-dropdown--open .tag-filter-chevron {
+  transform: rotate(180deg);
+}
+
+.tag-filter-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 50;
+  min-width: 14rem;
+  max-width: min(20rem, calc(100vw - 2rem));
+  max-height: 11rem;
+  display: flex;
+  flex-direction: column;
+  padding: 0.45rem 0.5rem 0.5rem;
+  background: var(--color-base-900);
+  border: 1px solid var(--color-base-800);
+  border-radius: 0.625rem;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+}
+
+.tag-filter-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  margin-bottom: 0.35rem;
+}
+
+.tag-filter-hint {
+  margin: 0;
+  padding: 0.15rem 0.25rem 0 0;
+  flex: 1;
+  min-width: 0;
+  font-size: 0.625rem;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--color-base-400);
+  line-height: 1.35;
+}
+
+.tag-filter-clear {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  padding: 0.25rem 0.4rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--color-base-800);
+  background: transparent;
+  font-size: 0.625rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
+  color: var(--color-base-400);
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.tag-filter-clear:hover {
+  border-color: var(--color-base-600);
+  color: var(--color-base-200);
+  background: color-mix(in srgb, var(--color-fg-strong) 5%, transparent);
+}
+
+.tag-filter-clear-icon {
+  flex-shrink: 0;
+  color: var(--color-base-500);
+  opacity: 0.9;
+}
+
+.tag-filter-clear:hover .tag-filter-clear-icon {
+  color: var(--color-base-400);
+}
+
+.tag-filter-options {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tag-filter-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.45rem 0.5rem;
+  border: none;
+  border-radius: 0.375rem;
+  background: transparent;
+  color: var(--color-base-300);
+  font-size: 0.8125rem;
+  font-family: 'JetBrains Mono', monospace;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.tag-filter-option:hover {
+  background: color-mix(in srgb, var(--color-fg-strong) 6%, transparent);
+  color: var(--color-fg-strong);
+}
+
+.tag-filter-option--active {
+  background: rgba(var(--color-neon-rgb), 0.08);
+  color: var(--color-neon-400);
+}
+
+.tag-filter-option-check {
+  flex-shrink: 0;
+  width: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-neon-400);
+}
+
+.tag-filter-option-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>

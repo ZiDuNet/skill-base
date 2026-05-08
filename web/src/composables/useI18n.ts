@@ -89,6 +89,10 @@ const zh: Record<string, string> = {
   'index.favorited': '已收藏',
   'index.favoriteCount': '收藏',
   'index.downloadCount': '下载',
+  'index.tagsFilter': '标签',
+  'index.tagsFilterHint': '可多选',
+  'index.clearTags': '清除标签',
+  'index.noFilterMatch': '没有符合当前筛选条件的 Skill',
 
   // Skill detail page
   'skill.title': 'Skill 详情 - Skill Base',
@@ -568,6 +572,10 @@ const en: Record<string, string> = {
   'index.favorited': 'Favorited',
   'index.favoriteCount': 'favorites',
   'index.downloadCount': 'downloads',
+  'index.tagsFilter': 'Tags',
+  'index.tagsFilterHint': 'Multi-select',
+  'index.clearTags': 'Clear tags',
+  'index.noFilterMatch': 'No skills match the current filters',
 
   // Skill detail page
   'skill.title': 'Skill Detail - Skill Base',
