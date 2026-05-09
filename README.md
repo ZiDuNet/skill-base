@@ -126,7 +126,7 @@ skb publish ./my-skill --changelog "API auth rules updated"
 
 PMs, QA, and colleagues who prefer not to use the CLI can search, browse versions, and download packages in the web UI. Team knowledge should not only serve people who write code.
 
-The web UI also supports account-based favorites, download counters, and an optional global tag library (managed by the super admin). Inline previews use a dedicated `/view` endpoint so browsing a version ZIP does not inflate download statistics.
+The web UI also supports account-based favorites, download counters, and an optional global tag library. Super admins manage tags under **Tag management** in the user menu (`/admin/tags`). On the home directory, a compact **Tags** filter (multi-select, OR semantics) narrows the skill list using tags present on visible skills. Skill owners and collaborators assign tags on the skill detail page from that library. Inline previews use a dedicated `/view` endpoint so browsing a version ZIP does not inflate download statistics.
 
 Visibility is built into the data model:
 
