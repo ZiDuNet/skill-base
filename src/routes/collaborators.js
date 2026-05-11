@@ -1,4 +1,5 @@
 const db = require('../database');
+// canManageSkill：技能所有者满足；role=admin 的用户在 hasSkillPermission 中一律视为有权限，可代管任意技能的协作者（见 permission.js）。
 const { canManageSkill, canViewSkill } = require('../utils/permission');
 const UserModel = require('../models/user');
 const { invalidateSkill } = require('../utils/model-cache');

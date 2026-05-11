@@ -4,92 +4,240 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Skill Base — skb ui</title>
+  <!-- 与 web/src/assets/main.css 暗色令牌对齐（CLI 单页无 Tailwind） -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #0f1419;
-      --panel: #1a2332;
-      --border: #2d3a4d;
-      --text: #e7ecf3;
-      --muted: #8b9cb3;
-      --accent: #3d8bfd;
-      --danger: #f87171;
-      --ok: #4ade80;
+      --color-base-950: #09090b;
+      --color-base-900: #13141a;
+      --color-base-800: #27272a;
+      --color-base-700: #3f3f46;
+      --color-base-400: #a1a1aa;
+      --color-base-200: #e4e4e7;
+      --color-fg: #e4e4e7;
+      --color-fg-strong: #fafafa;
+      --color-neon-400: #00ffa3;
+      --color-neon-500: #00e592;
+      --color-neon-rgb: 0, 255, 163;
+      --color-pink-400: #ff75b5;
+      --radius-sm: 4px;
       --radius: 8px;
-      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "PingFang SC", sans-serif;
+      --radius-lg: 12px;
+      color-scheme: dark;
     }
     * { box-sizing: border-box; }
+    html {
+      font-size: 16px;
+      -webkit-text-size-adjust: 100%;
+    }
     body {
       margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.5;
       min-height: 100vh;
+      font-family: 'Inter', system-ui, sans-serif;
+      background-color: var(--color-base-950);
+      background-image:
+        linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+      background-size: 64px 64px;
+      color: var(--color-fg);
+      line-height: 1.6;
+    }
+    ::selection {
+      background: rgba(var(--color-neon-rgb), 0.28);
+      color: #fff;
     }
     header {
       padding: 1rem 1.25rem;
-      border-bottom: 1px solid var(--border);
-      background: var(--panel);
+      border-bottom: 1px solid var(--color-base-800);
+      background-color: color-mix(in srgb, var(--color-base-950) 85%, transparent);
+      backdrop-filter: blur(12px);
     }
-    header h1 { font-size: 1.1rem; margin: 0 0 0.35rem; font-weight: 600; }
-    header .meta { font-size: 0.85rem; color: var(--muted); }
+    header h1 {
+      font-size: 1.125rem;
+      margin: 0 0 0.35rem;
+      font-weight: 600;
+      color: var(--color-fg-strong);
+      letter-spacing: -0.02em;
+    }
+    header .meta {
+      font-size: 0.8125rem;
+      color: var(--color-base-400);
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+    }
     main { padding: 1.25rem; max-width: 960px; margin: 0 auto; }
-    nav.tabs { display: flex; gap: 0.5rem; margin-bottom: 1.25rem; }
-    nav.tabs button {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 0.45rem 0.9rem;
-      border-radius: var(--radius);
-      cursor: pointer;
-      font-size: 0.9rem;
+    nav.tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
     }
-    nav.tabs button.active { border-color: var(--accent); color: var(--accent); }
+    nav.tabs button {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      padding: 0.375rem 0.75rem;
+      border-radius: 9999px;
+      cursor: pointer;
+      border: 1px solid var(--color-base-800);
+      background: var(--color-base-900);
+      color: var(--color-base-400);
+      transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+    }
+    nav.tabs button:hover {
+      border-color: var(--color-base-700);
+      color: var(--color-fg-strong);
+    }
+    nav.tabs button.active {
+      background: rgba(255, 117, 181, 0.1);
+      border-color: rgba(255, 117, 181, 0.5);
+      color: var(--color-pink-400);
+    }
     section.panel { display: none; }
     section.panel.active { display: block; }
     .row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-bottom: 0.75rem; }
     input[type="text"], input[type="search"], select {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 0.45rem 0.65rem;
-      border-radius: var(--radius);
-      font-size: 0.9rem;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 0.875rem;
+      background: var(--color-base-900);
+      border: 1px solid var(--color-base-800);
+      color: var(--color-fg-strong);
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.5rem;
       min-width: 12rem;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    input[type="text"]:focus, input[type="search"]:focus, select:focus {
+      outline: none;
+      border-color: var(--color-neon-400);
+      box-shadow: 0 0 0 1px var(--color-neon-400);
     }
     button.primary {
-      background: var(--accent);
-      border: none;
-      color: #fff;
-      padding: 0.5rem 1rem;
-      border-radius: var(--radius);
-      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 0.875rem;
       font-weight: 500;
-    }
-    button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
-    button.ghost {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      padding: 0.35rem 0.65rem;
-      border-radius: var(--radius);
+      padding: 0.625rem 1.25rem;
+      border-radius: 0.5rem;
       cursor: pointer;
-      font-size: 0.8rem;
+      border: 1px solid var(--color-neon-400);
+      background: rgba(var(--color-neon-rgb), 0.06);
+      color: var(--color-neon-400);
+      box-shadow: 0 0 15px rgba(var(--color-neon-rgb), 0.12);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
-    th, td { text-align: left; padding: 0.5rem 0.4rem; border-bottom: 1px solid var(--border); vertical-align: top; }
-    th { color: var(--muted); font-weight: 500; }
-    .msg { padding: 0.65rem; border-radius: var(--radius); margin: 0.5rem 0; font-size: 0.88rem; }
-    .msg.err { background: rgba(248,113,113,0.12); color: var(--danger); }
-    .msg.ok { background: rgba(74,222,128,0.1); color: var(--ok); }
-    .msg.info { background: rgba(61,139,253,0.1); color: var(--accent); }
-    dialog { border: 1px solid var(--border); border-radius: var(--radius); background: var(--panel); color: var(--text); padding: 1rem 1.25rem; max-width: min(440px, 94vw); }
-    dialog::backdrop { background: rgba(0,0,0,0.55); }
-    dialog h2 { margin: 0 0 0.75rem; font-size: 1rem; }
-    dialog label { display: block; font-size: 0.8rem; color: var(--muted); margin: 0.5rem 0 0.2rem; }
-    dialog .actions { margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: flex-end; }
-    code { font-size: 0.82em; background: var(--bg); padding: 0.1em 0.35em; border-radius: 4px; }
-    .desc { color: var(--muted); font-size: 0.82rem; max-width: 28rem; }
-    label.chk { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.88rem; cursor: pointer; }
+    button.primary:hover:not(:disabled) {
+      background: var(--color-neon-400);
+      color: #09090b;
+      box-shadow: 0 0 25px rgba(var(--color-neon-rgb), 0.28);
+      transform: translateY(-1px);
+    }
+    button.primary:active:not(:disabled) { transform: translateY(0); }
+    button.primary:disabled { opacity: 0.45; cursor: not-allowed; }
+    button.ghost {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 0.8125rem;
+      background: transparent;
+      border: 1px solid var(--color-base-800);
+      color: var(--color-base-400);
+      padding: 0.35rem 0.65rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    }
+    button.ghost:hover {
+      background: var(--color-base-800);
+      color: var(--color-fg-strong);
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    th, td {
+      text-align: left;
+      padding: 0.65rem 0.5rem;
+      border-bottom: 1px solid var(--color-base-800);
+      vertical-align: top;
+    }
+    th {
+      color: var(--color-base-400);
+      font-weight: 500;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .msg {
+      padding: 0.65rem 0.85rem;
+      border-radius: var(--radius);
+      margin: 0.5rem 0;
+      font-size: 0.875rem;
+      border: 1px solid transparent;
+    }
+    .msg.err {
+      background: rgba(239, 68, 68, 0.08);
+      border-color: rgba(239, 68, 68, 0.35);
+      color: #f87171;
+    }
+    .msg.ok {
+      background: rgba(var(--color-neon-rgb), 0.08);
+      border-color: rgba(var(--color-neon-rgb), 0.35);
+      color: var(--color-neon-400);
+    }
+    .msg.info {
+      background: rgba(var(--color-neon-rgb), 0.04);
+      border-color: var(--color-base-800);
+      color: var(--color-base-400);
+    }
+    dialog {
+      border: 1px solid var(--color-base-800);
+      border-radius: var(--radius-lg);
+      background: var(--color-base-900);
+      color: var(--color-fg);
+      padding: 1.125rem 1.25rem;
+      max-width: min(440px, 94vw);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+    }
+    dialog::backdrop { background: rgba(0, 0, 0, 0.55); }
+    dialog h2 {
+      margin: 0 0 0.75rem;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--color-fg-strong);
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+    }
+    dialog label {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--color-base-400);
+      margin: 0.5rem 0 0.25rem;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+    }
+    dialog .actions { margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: flex-end; flex-wrap: wrap; }
+    code {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 0.8125em;
+      background: var(--color-base-950);
+      padding: 0.12em 0.4em;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--color-base-800);
+      color: var(--color-neon-400);
+    }
+    .desc { color: var(--color-base-400); font-size: 0.8125rem; max-width: 28rem; }
+    label.chk {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.875rem;
+      cursor: pointer;
+      color: var(--color-fg);
+    }
+    label.chk input { accent-color: var(--color-neon-400); }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #13141a; }
+    ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
   </style>
   <script>window.__SKB_UI_LANG__ = __INITIAL_LANG__;</script>
 </head>
@@ -155,7 +303,7 @@
     <label for="sel-ver" id="lbl-pick-ver">选择版本</label>
     <select id="sel-ver" style="width:100%"></select>
     <div id="wrap-paths" style="display:none;margin-top:0.75rem">
-      <div id="lbl-paths" style="font-size:0.8rem;color:var(--muted);margin-bottom:0.35rem">选择目录</div>
+      <div id="lbl-paths" style="font-size:0.8rem;color:var(--color-base-400);margin-bottom:0.35rem">选择目录</div>
       <div id="path-checkboxes"></div>
     </div>
     <div class="actions">
