@@ -3,9 +3,9 @@
     <div class="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="sb-nav-main">
         <router-link to="/" class="sb-nav-brand text-lg tracking-tight select-none cursor-pointer">
-          <Package class="sb-nav-brand-icon" :size="22" :stroke-width="2" aria-hidden="true" />
-          <span class="sb-nav-brand-skill font-mono text-neon-400 font-bold">Skill</span>
-          <span class="text-fg-strong font-bold">Base</span>
+          <img src="https://chaoxi.live/portal/chaoxiBlue-icon.png" alt="ChaoXi" class="sb-nav-brand-logo" />
+          <span class="sb-nav-brand-skill font-mono text-neon-400 font-bold">潮汐数字</span>
+          <span class="text-fg-strong font-bold">Skill仓库</span>
         </router-link>
 
         <div class="sb-nav-links">
@@ -303,6 +303,13 @@ onUnmounted(() => {
 .sb-nav-brand-icon {
   color: var(--color-neon-400);
   /* filter: drop-shadow(0 0 8px rgba(var(--color-neon-rgb), 0.45)); */
+  flex-shrink: 0;
+}
+
+.sb-nav-brand-logo {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
   flex-shrink: 0;
 }
 
