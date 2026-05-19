@@ -4,8 +4,8 @@
       <div class="sb-nav-main">
         <router-link to="/" class="sb-nav-brand text-lg tracking-tight select-none cursor-pointer">
           <img src="https://chaoxi.live/portal/chaoxiBlue-icon.png" alt="ChaoXi" class="sb-nav-brand-logo" />
-          <span class="sb-nav-brand-skill font-mono text-neon-400 font-bold">潮汐数字</span>
-          <span class="text-fg-strong font-bold">Skill仓库</span>
+          <span class="sb-nav-brand-skill font-mono text-neon-400 font-bold">ChaoXi</span>
+          <span class="text-fg-strong font-bold">Skill资产</span>
         </router-link>
 
         <div class="sb-nav-links">
@@ -126,14 +126,16 @@ import {
   Users,
   Tags,
   LogOut,
+  Zap,
 } from 'lucide-vue-next'
 
-type NavMenuIconName = 'home' | 'publish' | 'layout'
+type NavMenuIconName = 'home' | 'publish' | 'layout' | 'zap'
 
 const navIconMap = {
   home: Home,
   publish: Upload,
-  layout: LayoutGrid
+  layout: LayoutGrid,
+  zap: Zap,
 } as const
 
 interface NavItem {
@@ -149,6 +151,7 @@ const props = withDefaults(defineProps<{
 }>(), {
   items: () => [
     { href: '/', label: 'Home', i18n: 'nav.home' },
+    { href: '/quick-start', label: 'Quick Start', i18n: 'nav.quickStart', icon: 'zap' },
     { href: '/publish', label: 'Publish', i18n: 'nav.publish' }
   ],
   currentPath: '/'
@@ -198,6 +201,7 @@ function inferNavIcon(href: string): NavMenuIconName {
   const p = normalizePath(href)
   if (p === '/') return 'home'
   if (p === '/publish') return 'publish'
+  if (p === '/quick-start') return 'zap'
   return 'layout'
 }
 

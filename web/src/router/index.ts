@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 // import LandingView from '@/views/LandingView.vue'
 import HomeView from '@/views/HomeView.vue'
+import QuickStartView from '@/views/QuickStartView.vue'
 import LoginView from '@/views/LoginView.vue'
 import SkillDetailView from '@/views/SkillDetailView.vue'
 import PublishView from '@/views/PublishView.vue'
@@ -20,6 +21,11 @@ const router = createRouter({
       path: '/',
       name: '',
       component: HomeView,
+    },
+    {
+      path: '/quick-start',
+      name: 'quick-start',
+      component: QuickStartView,
     },
     // {
     //   path: '/landing',

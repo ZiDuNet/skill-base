@@ -12,21 +12,29 @@ skill-base/
 ├── cli/          # CLI 命令行工具 (skill-base-cli)
 ├── src/          # 服务端源码 (Fastify)
 │   ├── middleware/   # 中间件 (auth, admin, error)
-│   ├── models/       # 数据模型 (skill, user, version)
+│   ├── models/       # 数据模型 (skill, user, version, tag)
 │   ├── routes/       # API 路由
 │   └── utils/        # 工具函数
-├── static/       # Web 前端 (原生 JS)
-│   ├── js/           # 前端脚本
-│   └── css/          # 样式文件
+├── web/          # 前端源码 (Vue 3 + TypeScript + Tailwind CSS + Vite)
+│   ├── src/
+│   │   ├── views/        # 页面组件
+│   │   ├── components/   # 公共组件（导航栏 SkillBaseNav 等）
+│   │   ├── composables/  # 组合式函数（useI18n、useTheme、useToast）
+│   │   ├── stores/       # Pinia 状态管理（auth、skills）
+│   │   ├── services/     # API 调用层
+│   │   └── router/       # 路由配置
+│   └── vite.config.ts    # 构建输出到 ../static/
+├── static/       # 前端构建产物，由后端 @fastify/static 托管
 ├── data/         # 数据存储 (SQLite + ZIP files)
 └── docs/         # API 文档
 ```
 
 ## Tech Stack
 
-- **Backend**: Node.js + Fastify
+- **Backend**: Node.js + Fastify (CommonJS)
 - **Database**: SQLite (node-sqlite3-wasm)
-- **Frontend**: Vanilla JavaScript + CSS
+- **Frontend**: Vue 3 + TypeScript + Tailwind CSS + Vite
+- **CLI**: ESM 独立包 (skill-base-cli)
 - **Storage**: Local filesystem (ZIP archives)
 
 ## Key Concepts
@@ -57,14 +65,25 @@ skill-base/
 ## Development Commands
 
 ```bash
-# 开发模式
+# 后端开发模式（nodemon 热重载）
 npm run dev
 
-# 生产模式
+# 后端生产模式
 npm start
 
-# 一键启动 (npx)
-npx skill-base -p 8000
+# 构建前端（输出到 static/）
+npm run build          # 等同于 cd web && pnpm build
+
+# 前端开发服务器（Vite，代理 API 到 localhost:8000）
+npm run web:dev        # 等同于 cd web && pnpm dev
+
+# 后端单元测试
+npm test
+
+# 安装依赖
+npm install            # 后端
+cd web && pnpm install # 前端
+cd cli && pnpm install # CLI
 ```
 
 ## Runtime Notes
@@ -76,10 +95,14 @@ npx skill-base -p 8000
 
 ## Code Style
 
-- 使用 CommonJS 模块系统
+- 后端使用 CommonJS (`require`/`module.exports`)，前端使用 ESM，CLI 使用 ESM
 - 异步函数使用 async/await
 - 错误处理通过 Fastify error handler
-- 前端使用原生 DOM API，无框架依赖
+- 前端使用 Vue 3 Composition API + `<script setup lang="ts">`
+- 前端国际化通过 `web/src/composables/useI18n.ts`，支持 `{key}` 模板参数
+- 前端构建产物输出到 `static/`，由后端托管
+- Vite 开发模式通过 proxy 将 `/api` 请求代理到 `localhost:8000`
+- 注意：Vite dev 模式下 `basePath.ts` 读取 `document.baseURI` 会导致路由异常，前端开发请用生产构建 + 后端验证
 
 ## Documentation Checklist
 
