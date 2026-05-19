@@ -4,7 +4,7 @@
       <!-- Logo -->
       <div class="login-brand">
         <span class="login-brand-icon">
-          <Package :size="28" :stroke-width="2" aria-hidden="true" />
+          <img src="https://chaoxi.live/portal/chaoxiBlue-icon.png" alt="ChaoXi" />
         </span>
         <span class="login-brand-text">Skill Base</span>
       </div>
@@ -174,6 +174,12 @@ async function handleLogin() {
 .login-brand-icon {
   color: var(--color-neon-400);
   filter: drop-shadow(0 0 8px rgba(var(--color-neon-rgb), 0.4));
+}
+
+.login-brand-icon img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
 }
 
 .login-brand-text {

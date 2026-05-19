@@ -29,7 +29,7 @@
       <!-- Logo -->
       <div class="setup-brand">
         <span class="setup-brand-icon">
-          <Package :size="28" :stroke-width="2" aria-hidden="true" />
+          <img src="https://chaoxi.live/portal/chaoxiBlue-icon.png" alt="ChaoXi" />
         </span>
         <span class="setup-brand-text">Skill Base</span>
       </div>
@@ -379,6 +379,12 @@ onMounted(() => {
 .setup-brand-icon {
   color: var(--color-neon-400);
   filter: drop-shadow(0 0 8px rgba(var(--color-neon-rgb), 0.4));
+}
+
+.setup-brand-icon img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
 }
 
 .setup-brand-text {

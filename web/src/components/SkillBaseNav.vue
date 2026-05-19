@@ -311,8 +311,8 @@ onUnmounted(() => {
 }
 
 .sb-nav-brand-logo {
-  width: 22px;
-  height: 22px;
+  width: 30px;
+  height: 30px;
   object-fit: contain;
   flex-shrink: 0;
 }
