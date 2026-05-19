@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  skill-base:
+    image: crpi-kdrx8sxe4fzlfrwj.cn-hangzhou.personal.cr.aliyuncs.com/wushuo98/skillbase:latest
+    container_name: skill-base
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8000}:8000"
+    volumes:
+      - ./data:/data
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      # === 基础配置 ===
+      - TZ=Asia/Shanghai
+      - PORT=8000                            # 服务端口，默认 8000
+      - HOST=0.0.0.0                         # 监听地址，默认 0.0.0.0
+      - DATA_DIR=/data                       # 数据目录，默认 data/
+      - DATABASE_PATH=/data/skills.db        # SQLite 文件路径，默认 <DATA_DIR>/skills.db
+      - APP_BASE_PATH=/                      # URL 前缀（如 /skills/），默认 /
+
+      # === 缓存与存储 ===
+      - CACHE_MAX_MB=50                      # 进程内 LRU 缓存上限（MB），默认 50
+      - SESSION_STORE=memory                 # Session 存储：memory（重启丢失）或 sqlite（持久化），默认 memory
+
+      # === 调试（按需开启） ===
+      # - DEBUG=true                          # true 启用详细日志，默认关闭
+
+      # === 吉祥物（按需开启） ===
+      # - ENABLE_CAPPY=true                   # true 启用终端 Cappy 吉祥物，默认关闭
+
+      # === GitHub 导入（按需配置） ===
+      # - GITHUB_TOKEN=ghp_xxx                         # GitHub Token，提升 API 限额
+      # - SKILL_BASE_GITHUB_TOKEN=ghp_xxx              # 同上，优先级高于 GITHUB_TOKEN
+      # - SKILL_BASE_GITHUB_IMPORT_MAX_ZIP_MB=50       # GitHub 导入 zip 体积上限（MB），默认 50
+      # - SKILL_BASE_GITHUB_CONNECTIVITY_TIMEOUT_MS=8000  # GitHub 连通性探测超时（ms），默认 8000
+
+      # === Webhook（按需配置） ===
+      # - SKILL_BASE_WEBHOOK_TIMEOUT_MS=5000           # Skill webhook 投递超时（ms），默认 5000
+
+      # === 数据库迁移（旧版升级按需配置） ===
+      # - SKILL_BASE_SQLITE3_PATH=/usr/bin/sqlite3     # 指定本机 sqlite3 路径，用于 WAL 模式迁移
