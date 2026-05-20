@@ -12,7 +12,7 @@ COPY web/ ./web/
 
 # Build frontend (output will be in ../static)
 WORKDIR /app/web
-RUN pnpm install
+RUN pnpm install --ignore-scripts=false
 RUN pnpm run build
 
 # Stage 2: Final runtime environment
