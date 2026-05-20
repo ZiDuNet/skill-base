@@ -24,14 +24,20 @@ jobs:
             label: macOS DMG
             dist-script: dist:mac
             artifact-name: desktop-macos
+            upload-path: |
+              desktop/release/*.dmg
           - os: windows-latest
             label: Windows EXE
             dist-script: dist:win
             artifact-name: desktop-windows
+            upload-path: desktop/release/*.exe
           - os: ubuntu-latest
             label: Linux packages
             dist-script: dist:linux
             artifact-name: desktop-linux
+            upload-path: |
+              desktop/release/*.AppImage
+              desktop/release/*.deb
 
     steps:
       - name: Checkout
@@ -62,6 +68,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact-name }}
-          path: desktop/release/**
+          path: ${{ matrix.upload-path }}
           if-no-files-found: error
           retention-days: 30
