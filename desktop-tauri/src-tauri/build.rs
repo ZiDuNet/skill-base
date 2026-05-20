@@ -27,8 +27,8 @@ fn ensure_resource_stubs(manifest_dir: &PathBuf) {
         &resources.join("bridge/server.mjs"),
         "console.error('bridge stub — run pnpm prepare:resources'); process.exit(1);\n",
     );
+    // Both paths are listed in tauri.conf.json; unused platform gets a zero-byte stub.
     write_if_missing(&resources.join("node/bin/node"), "");
-    #[cfg(windows)]
     write_if_missing(&resources.join("node/node.exe"), "");
 }
 

@@ -146,10 +146,15 @@ async function ensurePortableNode(target) {
 
   if (target === 'win-x64') {
     fs.copyFileSync(path.join(extractedRoot, 'node.exe'), path.join(destNodeDir, 'node.exe'));
+    // Tauri bundle lists both node layouts; stub the Unix path (unused on Windows).
+    fs.mkdirSync(path.join(destNodeDir, 'bin'), { recursive: true });
+    fs.writeFileSync(path.join(destNodeDir, 'bin/node'), '');
   } else {
     fs.mkdirSync(path.join(destNodeDir, 'bin'), { recursive: true });
     fs.copyFileSync(path.join(extractedRoot, 'bin/node'), path.join(destNodeDir, 'bin/node'));
     fs.chmodSync(path.join(destNodeDir, 'bin/node'), 0o755);
+    // Stub for Windows path (unused on macOS/Linux).
+    fs.writeFileSync(path.join(destNodeDir, 'node.exe'), '');
   }
 
   console.log(`portable Node → ${destNodeDir}`);
