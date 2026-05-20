@@ -2,6 +2,15 @@
   "name": "skill-base-desktop",
   "version": "0.1.0",
   "description": "Skill Base Desktop — 本地 Agent Skill 管理客户端",
+  "homepage": "https://skillbase.reaidea.com",
+  "author": {
+    "name": "ginuim",
+    "email": "ginuim@users.noreply.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ginuim/skill-base.git"
+  },
   "private": true,
   "type": "module",
   "main": "dist-electron/main.js",
@@ -57,7 +66,8 @@
     "linux": {
       "target": ["AppImage", "deb"],
       "category": "Development",
-      "executableName": "skill-base-desktop"
+      "executableName": "skill-base-desktop",
+      "maintainer": "ginuim <ginuim@users.noreply.github.com>"
     }
   }
 }
