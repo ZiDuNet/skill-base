@@ -1,0 +1,67 @@
+name: Desktop Release Build
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: desktop-release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: desktop
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            label: macOS DMG
+            dist-script: dist:mac
+            artifact-name: desktop-macos
+          - os: windows-latest
+            label: Windows EXE
+            dist-script: dist:win
+            artifact-name: desktop-windows
+          - os: ubuntu-latest
+            label: Linux packages
+            dist-script: dist:linux
+            artifact-name: desktop-linux
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+          cache-dependency-path: desktop/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build installers
+        env:
+          # Unsigned macOS builds in CI (no Apple Developer certificate)
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: pnpm run ${{ matrix.dist-script }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: desktop/release/**
+          if-no-files-found: error
+          retention-days: 30
