@@ -1,0 +1,1 @@
+# Replaced by `pnpm prepare:resources` before release builds.
