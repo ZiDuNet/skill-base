@@ -20,6 +20,8 @@ pnpm dev:bridge
 # Bridge 冒烟测试
 pnpm smoke:bridge
 pnpm smoke:bridge -- --bundled   # 测 esbuild 产物
+pnpm smoke:channels              # 全部 bridge IPC 通道
+pnpm verify:ipc                  # channel 声明 / Rust / UI 一致性
 ```
 
 **开发要求**：系统 PATH 中可用 `node`（≥18），Rust/Cargo，macOS 上 Xcode CLT。
@@ -82,9 +84,33 @@ pnpm dev
 - **Dev**：Rust 用 PATH `node` + 源码 `bridge/server.mjs`
 - **Release**：Rust 用 `resource_dir/node` + bundled `resource_dir/bridge/server.mjs`
 
-## CI
+## 验收
 
-`.github/workflows/desktop-tauri-release.yml` — push 到 `main` 且 desktop-tauri 相关路径变更时，在 macOS / Windows / Linux 矩阵上执行 `pnpm build` 并上传产物。
+完整清单见 [ACCEPTANCE.md](./ACCEPTANCE.md)（21 IPC channel、手动 UI 场景、与 Electron 对照）。
+
+发布前建议：
+
+```bash
+pnpm verify:ipc && pnpm smoke:channels && pnpm smoke:bridge -- --bundled
+cd src-tauri && cargo check
+```
+
+## CI 与下载
+
+[`.github/workflows/desktop-release.yml`](../.github/workflows/desktop-release.yml) — 每次 push 到 `main`（或手动 `workflow_dispatch`）在三平台构建 Tauri 安装包，并发布到 GitHub Releases 标签 **[desktop-latest](https://github.com/ginuim/skill-base/releases/tag/desktop-latest)**，用户可直接在仓库 **Releases** 页下载，无需进入 Actions 里的 Artifacts。
+
+同时会上传 Actions Artifacts（保留 90 天）供调试。
+
+## 故障排查
+
+| 现象 | 处理 |
+|------|------|
+| `bridge exited before ready` | 确认 `../cli` 已 `pnpm install`；检查 `node bridge/server.mjs`  stderr |
+| `bundled Node not found` | 先 `pnpm prepare:resources` 或完整 `pnpm build` |
+| `bridge script not found` | Release 需 `src-tauri/resources/bridge/server.mjs`；dev 用 `bridge/server.mjs` |
+| IPC 调用无响应 | DevTools 看 `skb_invoke` 错误；确认 bridge 子进程已输出 `BRIDGE_READY` |
+| 对话框/打开浏览器无效 | 5 个原生 channel 由 Rust 处理，见 [IPC.md](./IPC.md) |
+| 搜索/安装失败 | 检查 `config:get.baseUrl` 与 Skill Base 服务是否可达 |
 
 ## 许可与待办
 

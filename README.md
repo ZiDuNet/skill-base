@@ -442,6 +442,19 @@ This project stays intentionally small:
 
 Skill Base exists to make team standards actually flow—not to look impressive on a slide deck.
 
+## Desktop clients
+
+Skill Base ships a Tauri desktop app (recommended) and a legacy Electron shell; both share `cli/lib` and the Vue UI under `desktop/src`.
+
+**Download (CI builds from `main`):** [GitHub Releases → desktop-latest](https://github.com/ginuim/skill-base/releases/tag/desktop-latest) — macOS `.dmg`, Windows `.exe`/`.msi`, Linux `.AppImage`/`.deb`. No Node.js install required for end users.
+
+| Directory | Stack | Status | Build |
+|-----------|-------|--------|-------|
+| `desktop-tauri/` | Tauri 2 + bundled Node 20 bridge | **Recommended** | `pnpm install && pnpm build` |
+| `desktop/` | Electron | Legacy (maintenance) | `pnpm install && pnpm run dist` |
+
+CI: [`.github/workflows/desktop-release.yml`](.github/workflows/desktop-release.yml) builds Tauri on every push to `main` and updates the `desktop-latest` release. See [desktop-tauri/README.md](desktop-tauri/README.md) for dev/build/troubleshooting and [desktop-tauri/ACCEPTANCE.md](desktop-tauri/ACCEPTANCE.md) for the 21-channel parity checklist. Electron deprecation notes: [desktop/DEPRECATED.md](desktop/DEPRECATED.md).
+
 ## Contributing
 
 Licensed under [MIT](LICENSE). Issues and pull requests are welcome.

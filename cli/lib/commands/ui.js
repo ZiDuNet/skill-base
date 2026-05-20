@@ -7,7 +7,7 @@ import { execFile } from 'node:child_process';
 import { getConfig } from '../config.js';
 import { loadCredentials } from '../auth.js';
 import { listInstalledSkills, rememberSkillInstall } from '../installs.js';
-import { downloadAndExtract } from './install.js';
+import { downloadAndExtract } from '../download-and-extract.mjs';
 import { buildTargetInstalls, resolveImplicitSelectedInstalls } from './update.js';
 import {
   detectInsideIdeDir,

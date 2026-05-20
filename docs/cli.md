@@ -63,6 +63,21 @@ skb ui --host 0.0.0.0
 - 安装目标选「当前目录」时，Skill 会解压到**启动 `skb ui` 时的当前目录**（与终端里 `skb install` 使用当前目录一致）。
 - 按 `Ctrl+C` 结束进程后页面即不可用。
 
+## 桌面客户端
+
+除 `skb ui`（浏览器）外，仓库提供原生桌面壳，共用 `cli/lib` 安装/更新/登录逻辑与 `~/.skill-base/` 配置：
+
+| 目录 | 说明 |
+|------|------|
+| `desktop-tauri/` | **推荐**。Tauri 2 + bundled Node bridge |
+| `desktop/` | Electron（legacy，维护模式） |
+
+```bash
+cd desktop-tauri && pnpm install && pnpm dev
+```
+
+连接设置、验证码登录、全局/项目/自定义安装目录、多路径更新等行为与 CLI 一致。验收见 [desktop-tauri/ACCEPTANCE.md](../desktop-tauri/ACCEPTANCE.md)。
+
 ## 登录与凭证
 
 ### `skb login`

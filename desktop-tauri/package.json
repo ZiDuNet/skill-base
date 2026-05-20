@@ -15,6 +15,8 @@
     "prepare:resources": "node scripts/prepare-resources.mjs",
     "bundle:bridge": "node scripts/bundle-bridge.mjs",
     "smoke:bridge": "node scripts/smoke-bridge.mjs",
+    "smoke:channels": "node scripts/smoke-bridge.mjs --all",
+    "verify:ipc": "node scripts/verify-ipc-parity.mjs",
     "preview": "vite preview",
     "postinstall": "pnpm install --dir ../cli"
   },

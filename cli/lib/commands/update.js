@@ -3,9 +3,12 @@ import chalk from 'chalk';
 import ora from 'ora';
 import prompts from 'prompts';
 import { createClient } from '../api.js';
-import { pruneMissingSkillInstalls, rememberSkillInstall } from '../installs.js';
-import { downloadAndExtract } from './install.js';
+import { rememberSkillInstall } from '../installs.js';
+import { downloadAndExtract } from '../download-and-extract.mjs';
+import { buildTargetInstalls, resolveImplicitSelectedInstalls } from '../update-helpers.mjs';
 import { pickMessage, lang, formatDisplayTime } from '../i18n.js';
+
+export { buildTargetInstalls, resolveImplicitSelectedInstalls };
 
 function formatUploader(uploader) {
   if (!uploader) {
@@ -23,36 +26,8 @@ function summarizeLog(changelog) {
   return `${oneLine.slice(0, 77)}...`;
 }
 
-function formatInstallTitle(installPath) {
+export function formatInstallTitle(installPath) {
   return path.relative(process.cwd(), installPath) || installPath;
-}
-
-export function buildTargetInstalls(skillId, options) {
-  if (options?.dir) {
-    return [
-      {
-        installPath: path.resolve(options.dir, skillId),
-        version: '',
-        installedAt: '',
-        ide: '',
-        isGlobal: false
-      }
-    ];
-  }
-
-  return pruneMissingSkillInstalls(skillId);
-}
-
-export function resolveImplicitSelectedInstalls(installs, options) {
-  if (options?.dir) {
-    return installs;
-  }
-
-  if (installs.length === 1) {
-    return installs;
-  }
-
-  return null;
 }
 
 function installDescription(item) {

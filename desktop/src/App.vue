@@ -1,10 +1,12 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { ref, computed, inject, onMounted, onUnmounted, watch } from 'vue';
 import { useI18n } from './i18n/index.js';
 import { useTheme } from './composables/useTheme.js';
 
 const { t, locale, setLocale } = useI18n();
 const { preference: themePreference, setPreference: setThemePreference } = useTheme();
+/** Tauri 等客户端通过 provide 注入应用图标 URL；未注入时回退为闪电图标 */
+const appLogoSrc = inject('appLogoSrc', null);
 
 const currentTab = ref('installed');
 const searchQuery = ref('');
@@ -654,8 +656,9 @@ onUnmounted(() => {
     <!-- Sidebar -->
     <aside class="sidebar glass-panel">
       <div class="sidebar-header">
-        <div class="logo-icon">
-          <i class="fa-solid fa-bolt"></i>
+        <div class="logo-icon" :class="{ 'logo-icon--image': appLogoSrc }">
+          <img v-if="appLogoSrc" :src="appLogoSrc" alt="" class="logo-img" />
+          <i v-else class="fa-solid fa-bolt"></i>
         </div>
         <h1>SkillBase</h1>
       </div>
@@ -1529,7 +1532,6 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   padding: 4rem 1.5rem 1rem 1.5rem;
-  border-bottom: 1px solid var(--color-base-900);
   flex-shrink: 0;
 }
 
@@ -1544,6 +1546,19 @@ onUnmounted(() => {
   color: var(--color-heading);
   margin-right: 0.75rem;
   box-shadow: var(--shadow-logo);
+}
+
+.logo-icon--image {
+  background: transparent;
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 .sidebar-header h1 {
@@ -2500,6 +2515,19 @@ button.dir-tag {
 .locale-select,
 .theme-select {
   margin-bottom: 0.75rem;
+  line-height: 1.25;
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 2rem;
+  background-color: rgba(var(--color-base-900-rgb), 0.8);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='none' stroke='%2394a3b8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' d='M1 1.5 6 6.5 11 1.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+}
+
+.field-row input {
+  flex: 1;
+  line-height: 1.25;
 }
 
 .settings-hint {
@@ -2521,10 +2549,6 @@ button.dir-tag {
   display: flex;
   gap: 0.75rem;
   margin-bottom: 1rem;
-}
-
-.field-row input {
-  flex: 1;
 }
 
 .font-mono {
