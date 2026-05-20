@@ -37,7 +37,8 @@
     ],
     "resources": [
       "resources/bridge/*",
-      "resources/node/bin/*"
+      "resources/node/bin/node",
+      "resources/node/node.exe"
     ]
   },
   "plugins": {}

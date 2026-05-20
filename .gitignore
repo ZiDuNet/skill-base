@@ -10,4 +10,6 @@ data
 .pnpm-store/
 static/
 scripts/
+!desktop-tauri/scripts/
+!desktop-tauri/scripts/**
 promo-video/

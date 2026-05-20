@@ -29,19 +29,19 @@ jobs:
           - os: macos-latest
             label: macOS DMG
             node_target: darwin-arm64
+            tauri_bundles: dmg
             artifact-name: desktop-macos
-            upload-path: |
-              desktop-tauri/src-tauri/target/release/bundle/dmg/*.dmg
+            upload-path: desktop-tauri/src-tauri/target/release/bundle/dmg/*.dmg
           - os: windows-latest
-            label: Windows EXE/MSI
+            label: Windows NSIS
             node_target: win-x64
+            tauri_bundles: nsis
             artifact-name: desktop-windows
-            upload-path: |
-              desktop-tauri/src-tauri/target/release/bundle/nsis/*.exe
-              desktop-tauri/src-tauri/target/release/bundle/msi/*.msi
+            upload-path: desktop-tauri/src-tauri/target/release/bundle/nsis/*.exe
           - os: ubuntu-latest
             label: Linux packages
             node_target: linux-x64
+            tauri_bundles: appimage,deb
             artifact-name: desktop-linux
             upload-path: |
               desktop-tauri/src-tauri/target/release/bundle/appimage/*.AppImage
@@ -95,7 +95,7 @@ jobs:
           SKB_NODE_TARGET: ${{ matrix.node_target }}
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
           CI: true
-        run: pnpm run build
+        run: pnpm exec tauri build --bundles ${{ matrix.tauri_bundles }}
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -141,7 +141,7 @@ jobs:
             | 平台 | 文件 |
             |------|------|
             | macOS (Apple Silicon) | `.dmg` |
-            | Windows | `.exe`（NSIS）、`.msi` |
+            | Windows | `.exe`（NSIS） |
             | Linux | `.AppImage`、`.deb` |
 
             安装包未签名，首次打开 macOS 可能需在「隐私与安全性」中允许；Windows 可能触发 SmartScreen。
@@ -150,6 +150,5 @@ jobs:
           files: |
             installers/**/*.dmg
             installers/**/*.exe
-            installers/**/*.msi
             installers/**/*.AppImage
             installers/**/*.deb

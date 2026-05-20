@@ -54,7 +54,7 @@ SKB_NODE_TARGET=darwin-arm64 pnpm prepare:resources   # darwin-arm64 | darwin-x6
 | 平台 | 产物 |
 |------|------|
 | macOS | `dmg/*.dmg` |
-| Windows | `nsis/*.exe`、`msi/*.msi` |
+| Windows | `nsis/*.exe` |
 | Linux | `appimage/*.AppImage`、`deb/*.deb` |
 
 ### 环境变量

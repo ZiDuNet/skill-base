@@ -446,7 +446,7 @@ Skill Base exists to make team standards actually flow—not to look impressive 
 
 Skill Base ships a Tauri desktop app (recommended) and a legacy Electron shell; both share `cli/lib` and the Vue UI under `desktop/src`.
 
-**Download (CI builds from `main`):** [GitHub Releases → desktop-latest](https://github.com/ginuim/skill-base/releases/tag/desktop-latest) — macOS `.dmg`, Windows `.exe`/`.msi`, Linux `.AppImage`/`.deb`. No Node.js install required for end users.
+**Download (CI builds from `main`):** [GitHub Releases → desktop-latest](https://github.com/ginuim/skill-base/releases/tag/desktop-latest) — macOS `.dmg`, Windows `.exe`（NSIS）, Linux `.AppImage`/`.deb`. No Node.js install required for end users.
 
 | Directory | Stack | Status | Build |
 |-----------|-------|--------|-------|
