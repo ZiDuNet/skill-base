@@ -8,6 +8,11 @@ export default {
     installed: 'Local Assets',
     market: 'Skill Market'
   },
+  theme: {
+    light: 'Light',
+    dark: 'Dark',
+    system: 'Match system'
+  },
   status: {
     notConfigured: 'Not configured'
   },
@@ -101,8 +106,6 @@ export default {
     general: 'General',
     language: 'Language',
     theme: 'Theme',
-    themeComingSoon: 'Coming soon',
-    themeHint: 'Theme switching will be available in a future release.',
     connection: 'Connection',
     serverUrl: 'Server base URL',
     save: 'Save',

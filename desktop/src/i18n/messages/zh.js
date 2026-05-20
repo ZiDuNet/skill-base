@@ -8,6 +8,11 @@ export default {
     installed: '本地资产',
     market: '技能市场'
   },
+  theme: {
+    light: '浅色',
+    dark: '深色',
+    system: '跟随系统'
+  },
   status: {
     notConfigured: '未配置'
   },
@@ -100,8 +105,6 @@ export default {
     general: '通用',
     language: '界面语言',
     theme: '主题',
-    themeComingSoon: '即将推出',
-    themeHint: '主题切换将在后续版本提供。',
     connection: '连接',
     serverUrl: 'Server 根地址',
     save: '保存',

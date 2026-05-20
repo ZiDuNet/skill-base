@@ -1,6 +1,20 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
   <head>
+    <script>
+      (function () {
+        try {
+          var k = 'skill-base-theme';
+          var v = localStorage.getItem(k);
+          var p = v === 'light' || v === 'dark' || v === 'system' ? v : 'dark';
+          var dark =
+            p === 'dark' ||
+            (p === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+          document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+        } catch (e) {}
+      })();
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Skill Base Desktop</title>
