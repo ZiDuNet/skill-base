@@ -2,11 +2,14 @@ version: "3.8"
 
 services:
   skill-base:
-    image: crpi-kdrx8sxe4fzlfrwj.cn-hangzhou.personal.cr.aliyuncs.com/wushuo98/skillbase:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # image: crpi-kdrx8sxe4fzlfrwj.cn-hangzhou.personal.cr.aliyuncs.com/wushuo98/skillbase:latest
     container_name: skill-base
     restart: unless-stopped
     ports:
-      - "${PORT:-8000}:8000"
+      - "${PORT:-8001}:8000"
     volumes:
       - ./data:/data
       - /etc/localtime:/etc/localtime:ro

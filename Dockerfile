@@ -1,5 +1,5 @@
 # Stage 1: Build frontend (Builder)
-FROM node:20-alpine AS builder
+FROM registry.cn-shanghai.aliyuncs.com/4dbim_public/node:22-alpine AS builder
 
 # Install pnpm (required for build scripts)
 RUN npm install -g pnpm
@@ -16,7 +16,7 @@ RUN pnpm install
 RUN pnpm run build
 
 # Stage 2: Final runtime environment
-FROM node:20-alpine
+FROM registry.cn-shanghai.aliyuncs.com/4dbim_public/node:22-alpine
 
 WORKDIR /app
 
