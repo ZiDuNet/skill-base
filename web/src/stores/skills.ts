@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { skillsApi, versionsApi, collaboratorsApi, type Skill, type SkillDetail, type SkillVersion, type Tag } from '@/services/api'
+import { parseUtcDateString } from '@/utils/date'
 
 export const useSkillsStore = defineStore('skills', () => {
   // State
@@ -14,7 +15,7 @@ export const useSkillsStore = defineStore('skills', () => {
   // Getters
   const sortedSkills = computed(() => {
     return [...skills.value].sort((a, b) => {
-      return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+      return parseUtcDateString(b.updated_at).getTime() - parseUtcDateString(a.updated_at).getTime()
     })
   })
 

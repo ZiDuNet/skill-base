@@ -1,5 +1,14 @@
 export type DateFormatLocale = 'zh' | 'en'
 
+/** SQLite datetime('now') 返回 UTC 但不带 Z，补上后缀让 JS 识别为 UTC */
+export function parseUtcDateString(dateStr: string): Date {
+  const normalized =
+    dateStr.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(dateStr)
+      ? dateStr
+      : dateStr.replace(' ', 'T') + 'Z'
+  return new Date(normalized)
+}
+
 /**
  * 相对时间：24 小时内用秒/分/小时，避免「今天」掩盖真实间隔
  */
@@ -9,7 +18,7 @@ export function formatDate(
 ): string {
   if (!dateStr) return ''
 
-  const date = new Date(dateStr)
+  const date = parseUtcDateString(dateStr)
   const now = new Date()
   const diffMs = now.getTime() - date.getTime()
 
@@ -59,7 +68,7 @@ export function formatDate(
 export function formatDateFull(dateStr: string | null | undefined): string {
   if (!dateStr) return ''
 
-  const date = new Date(dateStr)
+  const date = parseUtcDateString(dateStr)
   return date.toLocaleString('zh-CN', {
     year: 'numeric',
     month: 'short',
