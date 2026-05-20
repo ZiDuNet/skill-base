@@ -1,5 +1,8 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { useI18n } from './i18n/index.js';
+
+const { t, locale, setLocale } = useI18n();
 
 const currentTab = ref('installed');
 const searchQuery = ref('');
@@ -20,6 +23,7 @@ const loading = ref(false);
 
 // Settings modal
 const settingsModalOpen = ref(false);
+const settingsTab = ref('general');
 const registryUrl = ref('');
 const verificationCode = ref('');
 const patReady = ref(false);
@@ -64,10 +68,12 @@ const updatesAvailable = computed(() =>
 );
 
 const currentTabLabel = computed(() => {
-  if (currentTab.value === 'installed') return '本地资产';
-  if (currentTab.value === 'market') return '技能市场';
+  if (currentTab.value === 'installed') return t('tabs.installed');
+  if (currentTab.value === 'market') return t('tabs.market');
   return currentTab.value;
 });
+
+const revealPathHint = computed(() => t('installed.revealHint'));
 
 const updateSelectedVersionDetail = computed(() =>
   updateVersions.value.find((v) => v.version === updateSelectedVersion.value) || null
@@ -133,7 +139,7 @@ function normalizePath(p) {
   return p.replace(/^\/Users\/[^/]+/, '~').replace(/^\/home\/[^/]+/, '~');
 }
 
-/** 卡片内展示：保留 ~ 前缀，路径尽量完整，过长则中间省略 */
+/** Display path with ~ prefix; ellipsis in the middle when too long */
 function formatPath(p, maxLen = PATH_DISPLAY_MAX) {
   const display = normalizePath(p);
   if (display.length <= maxLen) return display;
@@ -143,11 +149,11 @@ function formatPath(p, maxLen = PATH_DISPLAY_MAX) {
 
 function versionUploaderLabel(version) {
   const u = version?.uploader;
-  if (!u) return '未知';
-  return u.name || u.username || '未知';
+  if (!u) return t('common.unknown');
+  return u.name || u.username || t('common.unknown');
 }
 
-/** versions 按 created_at 降序；返回 diff 页所需的 version_a（旧）/ version_b（新） */
+/** Pick version_a (older) and version_b (newer) for the diff page */
 function diffVersionPair(installedVer, selectedVer, versionsList) {
   const idxInstalled = versionsList.findIndex((v) => v.version === installedVer);
   const idxSelected = versionsList.findIndex((v) => v.version === selectedVer);
@@ -182,7 +188,7 @@ async function openUpdateVersionOnline(page = 'detail') {
     }
     await window.skb.invoke('skills:openWebPage', payload);
   } catch (e) {
-    showToast(`打开失败: ${e.message}`);
+    showToast(t('toast.openFailed', { message: e.message }));
   }
 }
 
@@ -191,13 +197,11 @@ function openPathsModal(skill) {
   pathsModalOpen.value = true;
 }
 
-const revealPathHint = '在 Finder / 资源管理器中打开';
-
 async function revealInstallPath(installPath) {
   try {
     await window.skb.invoke('shell:revealPath', installPath);
   } catch (e) {
-    showToast(`无法打开: ${e.message}`);
+    showToast(t('toast.revealFailed', { message: e.message }));
   }
 }
 
@@ -237,7 +241,7 @@ async function loadInstalled() {
   try {
     installedSkills.value = await window.skb.invoke('skills:getInstalled');
   } catch (e) {
-    showToast(`加载失败: ${e.message}`);
+    showToast(t('toast.loadFailed', { message: e.message }));
   } finally {
     loading.value = false;
   }
@@ -248,7 +252,7 @@ async function loadMarket() {
   try {
     marketSkills.value = await window.skb.invoke('skills:search', '');
   } catch (e) {
-    showToast(`加载失败: ${e.message}`);
+    showToast(t('toast.loadFailed', { message: e.message }));
   } finally {
     loading.value = false;
   }
@@ -336,7 +340,7 @@ async function openMarketSkillDetail(skill) {
   try {
     await window.skb.invoke('skills:openWebPage', { skillId: skill.id });
   } catch (e) {
-    showToast(`打开失败: ${e.message}`);
+    showToast(t('toast.openFailed', { message: e.message }));
   }
 }
 
@@ -344,7 +348,7 @@ async function pickProjectRoot() {
   const root = await window.skb.invoke('project:pickRoot');
   if (root) {
     config.value.projectRoot = root;
-    showToast(`项目目录: ${root}`);
+    showToast(t('project.picked', { path: root }));
   }
 }
 
@@ -427,15 +431,15 @@ async function confirmInstall() {
         showToast(result.detail);
         return;
       }
-      throw new Error(result.detail || '安装失败');
+      throw new Error(result.detail || t('toast.installFailed', { message: '' }));
     }
 
     installModalOpen.value = false;
     const count = result.installed?.length || 0;
-    showToast(`已安装 ${skillId} 到 ${count} 个目录`);
+    showToast(t('toast.installedTo', { skillId, count }));
     await loadInstalled();
   } catch (e) {
-    showToast(`安装失败: ${e.message}`);
+    showToast(t('toast.installFailed', { message: e.message }));
   } finally {
     installing.value = false;
   }
@@ -450,7 +454,7 @@ async function openUpdateModal(skill) {
     updateSelectedVersion.value = updateVersions.value[0]?.version || skill.latest;
     updateInstallPaths.value = skill.installs;
   } catch (e) {
-    showToast(`加载版本失败: ${e.message}`);
+    showToast(t('toast.versionsLoadFailed', { message: e.message }));
     updateModalOpen.value = false;
   }
 }
@@ -473,10 +477,10 @@ async function confirmUpdate() {
     }
 
     updateModalOpen.value = false;
-    showToast(`已更新 ${updateSkill.value.skillId}`);
+    showToast(t('toast.updated', { skillId: updateSkill.value.skillId }));
     await loadInstalled();
   } catch (e) {
-    showToast(`更新失败: ${e.message}`);
+    showToast(t('toast.updateFailed', { message: e.message }));
   } finally {
     updating.value = false;
   }
@@ -489,11 +493,11 @@ async function updateOne(skill) {
       skillId: skill.skillId,
       version: skill.latest
     });
-    if (!result.ok) throw new Error(result.detail || '更新失败');
-    showToast(`已更新 ${skill.skillId} → v${skill.latest}`);
+    if (!result.ok) throw new Error(result.detail || t('toast.updateFailed', { message: '' }));
+    showToast(t('toast.updatedTo', { skillId: skill.skillId, version: skill.latest }));
     await loadInstalled();
   } catch (e) {
-    showToast(`更新失败: ${e.message}`);
+    showToast(t('toast.updateFailed', { message: e.message }));
   } finally {
     skill._updating = false;
   }
@@ -510,15 +514,15 @@ async function saveServer() {
   try {
     await window.skb.invoke('config:setServer', registryUrl.value);
     await loadConfig();
-    showToast('服务器地址已保存');
+    showToast(t('toast.serverSaved'));
   } catch (e) {
-    showToast(`保存失败: ${e.message}`);
+    showToast(t('toast.saveFailed', { message: e.message }));
   }
 }
 
 async function exchangePat() {
   if (!verificationCode.value) {
-    showToast('请输入验证码');
+    showToast(t('toast.enterCode'));
     return;
   }
   isExchangingPat.value = true;
@@ -527,9 +531,9 @@ async function exchangePat() {
     patReady.value = true;
     verificationCode.value = '';
     await loadConfig();
-    showToast(`登录成功: ${result.username}`);
+    showToast(t('toast.loginSuccess', { username: result.username }));
   } catch (e) {
-    showToast(`验证失败: ${e.message}`);
+    showToast(t('toast.verifyFailed', { message: e.message }));
   } finally {
     isExchangingPat.value = false;
   }
@@ -540,18 +544,18 @@ async function testConnection() {
   try {
     const result = await window.skb.invoke('auth:whoami');
     if (result.ok) {
-      showToast(`连接正常 · ${result.user.username}`);
+      showToast(t('toast.connectionOk', { username: result.user.username }));
     } else if (result.reason === 'no_token') {
-      showToast('未登录，但服务器地址可访问（部分功能无需登录）');
+      showToast(t('toast.notLoggedIn'));
       await window.skb.invoke('skills:search', 'a').catch(() => {
-        throw new Error('无法连接服务器');
+        throw new Error('server unreachable');
       });
-      showToast('服务器连接正常（未登录）');
+      showToast(t('toast.connectionOkNoLogin'));
     } else {
-      throw new Error(result.detail || '认证失败');
+      throw new Error(result.detail || 'auth failed');
     }
   } catch (e) {
-    showToast(`连接失败: ${e.message}`);
+    showToast(t('toast.connectionFailed', { message: e.message }));
   } finally {
     isTestingConnection.value = false;
   }
@@ -566,19 +570,24 @@ async function logout() {
     await window.skb.invoke('auth:logout');
     patReady.value = false;
     await loadConfig();
-    showToast('已退出登录');
+    showToast(t('toast.loggedOut'));
   } catch (e) {
-    showToast(`退出失败: ${e.message}`);
+    showToast(t('toast.logoutFailed', { message: e.message }));
   }
 }
 
 function openSettingsModal() {
+  settingsTab.value = 'general';
   settingsModalOpen.value = true;
 }
 
 function promptConfigureServer() {
-  showToast('请先在设置中配置服务器地址');
+  showToast(t('toast.configureServerFirst'));
   openSettingsModal();
+}
+
+function onLocaleChange(event) {
+  setLocale(event.target.value);
 }
 
 function toggleUpdatePath(p) {
@@ -651,27 +660,27 @@ onUnmounted(() => {
           @click="currentTab = 'installed'"
         >
           <i class="fa-solid fa-box-archive"></i>
-          本地资产管理
+          {{ t('nav.installed') }}
         </button>
         <button
           :class="['nav-btn', { active: currentTab === 'market' }]"
           @click="currentTab = 'market'"
         >
           <i class="fa-solid fa-globe"></i>
-          技能市场
+          {{ t('nav.market') }}
         </button>
       </nav>
 
       <div class="sidebar-bottom">
         <button class="nav-btn" @click="openSettingsModal">
           <i class="fa-solid fa-sliders"></i>
-          连接设置
+          {{ t('nav.settings') }}
         </button>
       </div>
 
       <div class="sidebar-status">
         <span class="status-dot"></span>
-        <span class="status-text">{{ config.baseUrl || '未配置' }}</span>
+        <span class="status-text">{{ config.baseUrl || t('status.notConfigured') }}</span>
       </div>
     </aside>
 
@@ -682,7 +691,7 @@ onUnmounted(() => {
           <i class="fa-solid fa-folder-open"></i>
           <button
             class="project-path"
-            :title="config.projectRoot || '选择项目目录'"
+            :title="config.projectRoot || t('project.pickRoot')"
             @click="pickProjectRoot"
           >
             {{ formatPath(config.projectRoot || '~', 40) }}
@@ -703,19 +712,19 @@ onUnmounted(() => {
               v-if="currentTab === 'installed'"
               v-model="searchQuery"
               type="search"
-              placeholder="搜索本地 Skill..."
+              :placeholder="t('search.installed')"
             />
             <input
               v-else
               v-model="marketQuery"
               type="search"
-              placeholder="搜索技能名称、描述..."
+              :placeholder="t('search.market')"
             />
             <button
               v-if="currentTab === 'market' && marketQuery"
               type="button"
               class="search-clear-btn"
-              title="清除搜索"
+              :title="t('search.clear')"
               @click="marketQuery = ''"
             >
               <i class="fa-solid fa-xmark"></i>
@@ -730,7 +739,7 @@ onUnmounted(() => {
             @click="marketOnlyFavorites = !marketOnlyFavorites"
           >
             <i class="fa-solid fa-heart"></i>
-            仅收藏
+            {{ t('market.favoritesOnly') }}
           </button>
 
           <div
@@ -746,7 +755,7 @@ onUnmounted(() => {
               @click="toggleMarketTagDropdown"
             >
               <i class="fa-solid fa-tags"></i>
-              标签
+              {{ t('market.tags') }}
               <span v-if="marketSelectedTagIds.length > 0" class="tag-filter-badge">
                 {{ marketSelectedTagIds.length }}
               </span>
@@ -757,7 +766,7 @@ onUnmounted(() => {
               class="tag-filter-panel"
             >
               <div class="tag-filter-panel-header">
-                <p class="tag-filter-hint">可多选，匹配任一标签即显示</p>
+                <p class="tag-filter-hint">{{ t('market.tagHint') }}</p>
                 <button
                   v-if="marketSelectedTagIds.length > 0"
                   type="button"
@@ -765,7 +774,7 @@ onUnmounted(() => {
                   @click="clearMarketTagFilter"
                 >
                   <i class="fa-solid fa-xmark"></i>
-                  清除
+                  {{ t('market.clear') }}
                 </button>
               </div>
               <div class="tag-filter-options">
@@ -790,7 +799,7 @@ onUnmounted(() => {
             type="button"
             class="btn-ghost toolbar-refresh-btn"
             :disabled="loading"
-            title="从服务器刷新列表"
+            :title="t('market.refresh')"
             @click="loadMarket"
           >
             <i class="fa-solid fa-arrows-rotate" :class="{ 'fa-spin': loading }"></i>
@@ -806,10 +815,10 @@ onUnmounted(() => {
             <div class="section-header">
               <div>
                 <h2>
-                  本地资产
-                  <span class="accent">({{ installedSkills.length }})</span>
+                  {{ t('installed.title') }}
+                  <span class="accent">{{ t('installed.count', { count: installedSkills.length }) }}</span>
                 </h2>
-                <p class="subtitle">跨 Agent 目录集中管理，一键同步版本更新。</p>
+                <p class="subtitle">{{ t('installed.subtitle') }}</p>
               </div>
               <button
                 v-if="updatesAvailable > 0"
@@ -817,15 +826,15 @@ onUnmounted(() => {
                 @click="updateAll"
               >
                 <i class="fa-solid fa-cloud-arrow-down"></i>
-                同步更新所有 ({{ updatesAvailable }})
+                {{ t('installed.syncAll', { count: updatesAvailable }) }}
               </button>
             </div>
 
             <div v-if="loading && !installedSkills.length" class="empty-state">
-              <i class="fa-solid fa-circle-notch fa-spin"></i> 加载中...
+              <i class="fa-solid fa-circle-notch fa-spin"></i> {{ t('installed.loading') }}
             </div>
             <div v-else-if="!filteredInstalled().length" class="empty-state">
-              暂无本地安装记录，前往技能市场安装。
+              {{ t('installed.empty') }}
             </div>
             <div v-else class="skill-grid-3">
               <div
@@ -853,7 +862,7 @@ onUnmounted(() => {
                   <div class="skill-actions">
                     <button
                       class="btn-icon"
-                      title="选择更新目录"
+                      :title="t('installed.selectUpdateDirs')"
                       @click="openUpdateModal(skill)"
                     >
                       <i class="fa-solid fa-network-wired"></i>
@@ -862,7 +871,7 @@ onUnmounted(() => {
                       v-if="skill.version !== skill.latest"
                       class="btn-icon update-btn"
                       :disabled="skill._updating"
-                      title="更新"
+                      :title="t('installed.update')"
                       @click="updateOne(skill)"
                     >
                       <i
@@ -870,7 +879,7 @@ onUnmounted(() => {
                         :class="{ 'fa-spin': skill._updating }"
                       ></i>
                     </button>
-                    <button v-else class="btn-icon" disabled title="已是最新">
+                    <button v-else class="btn-icon" disabled :title="t('installed.upToDate')">
                       <i class="fa-solid fa-check"></i>
                     </button>
                   </div>
@@ -893,10 +902,10 @@ onUnmounted(() => {
                     class="dir-tag dir-tag-more"
                     @click="openPathsModal(skill)"
                   >
-                    +{{ skill.installs.length - DIR_PREVIEW_COUNT }} 查看全部
+                    {{ t('installed.viewAll', { count: skill.installs.length - DIR_PREVIEW_COUNT }) }}
                   </button>
                   <span v-if="!skill.installs.length" class="dir-tag error">
-                    未挂载
+                    {{ t('installed.notMounted') }}
                   </span>
                 </div>
               </div>
@@ -907,20 +916,20 @@ onUnmounted(() => {
           <div v-else-if="currentTab === 'market'" key="market">
             <div class="section-header">
               <div>
-                <h2>技能市场</h2>
-                <p class="subtitle">从 Skill Base 服务端拉取团队共享 Agent 能力。</p>
+                <h2>{{ t('market.title') }}</h2>
+                <p class="subtitle">{{ t('market.subtitle') }}</p>
               </div>
             </div>
 
             <div v-if="loading && !marketSkills.length" class="empty-state">
-              <i class="fa-solid fa-circle-notch fa-spin"></i> 加载中...
+              <i class="fa-solid fa-circle-notch fa-spin"></i> {{ t('market.loading') }}
             </div>
             <div v-else-if="!filteredMarketSkills.length" class="empty-state">
               <template v-if="marketQuery || marketOnlyFavorites || marketSelectedTagIds.length">
-                无匹配结果，请调整搜索或筛选条件。
+                {{ t('market.emptyFiltered') }}
               </template>
               <template v-else>
-                暂无技能，请检查服务器连接或点击刷新。
+                {{ t('market.empty') }}
               </template>
             </div>
             <div v-else class="skill-grid-3">
@@ -937,7 +946,7 @@ onUnmounted(() => {
                     <button
                       type="button"
                       class="btn-icon market-detail-btn"
-                      title="在浏览器中打开详情"
+                      :title="t('market.openDetail')"
                       @click="openMarketSkillDetail(skill)"
                     >
                       <i class="fa-solid fa-arrow-up-right-from-square"></i>
@@ -946,14 +955,14 @@ onUnmounted(() => {
                 </div>
                 <p class="skill-desc line-clamp-2">{{ skill.description }}</p>
                 <div class="market-card-stats">
-                  <span class="market-stat" title="下载次数">
+                  <span class="market-stat" :title="t('market.downloads')">
                     <i class="fa-solid fa-download"></i>
                     {{ skill.download_count ?? 0 }}
                   </span>
                   <span
                     class="market-stat"
                     :class="{ 'market-stat--favorited': skill.is_favorited }"
-                    :title="skill.is_favorited ? '已收藏' : '收藏数'"
+                    :title="skill.is_favorited ? t('market.favorited') : t('market.favoriteCount')"
                   >
                     <i class="fa-solid fa-heart"></i>
                     {{ skill.favorite_count ?? 0 }}
@@ -972,7 +981,7 @@ onUnmounted(() => {
                   >
                     <i v-if="isInstalled(skill.id)" class="fa-solid fa-check"></i>
                     <i v-else class="fa-solid fa-download"></i>
-                    {{ isInstalled(skill.id) ? '已安装' : '安装' }}
+                    {{ isInstalled(skill.id) ? t('market.installed') : t('market.install') }}
                   </button>
                 </div>
               </div>
@@ -997,17 +1006,17 @@ onUnmounted(() => {
         <div class="modal-header">
           <h3>
             <i class="fa-solid fa-download text-indigo"></i>
-            安装 / {{ installSkill?.name || installSkill?.id }}
+            {{ t('install.title', { name: installSkill?.name || installSkill?.id }) }}
           </h3>
           <button class="btn-icon" @click="installModalOpen = false">
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
         <div class="modal-body">
-          <label class="field-label">版本</label>
+          <label class="field-label">{{ t('install.version') }}</label>
           <input v-model="installVersion" type="text" placeholder="latest" class="font-mono" />
 
-          <label class="field-label" style="margin-top: 1rem">安装目标</label>
+          <label class="field-label" style="margin-top: 1rem">{{ t('install.targets') }}</label>
 
           <nav class="install-target-tabs">
             <button
@@ -1016,7 +1025,7 @@ onUnmounted(() => {
               @click="installTargetTab = 'global'"
             >
               <i class="fa-solid fa-globe"></i>
-              全局 Agent
+              {{ t('install.global') }}
             </button>
             <button
               type="button"
@@ -1024,7 +1033,7 @@ onUnmounted(() => {
               @click="installTargetTab = 'project'"
             >
               <i class="fa-solid fa-robot"></i>
-              项目 Agent
+              {{ t('install.project') }}
             </button>
             <button
               type="button"
@@ -1032,28 +1041,28 @@ onUnmounted(() => {
               @click="installTargetTab = 'custom'"
             >
               <i class="fa-solid fa-folder-open"></i>
-              自定义目录
+              {{ t('install.custom') }}
             </button>
           </nav>
 
-          <!-- Tab: 全局 Agent -->
+          <!-- Tab: global agents -->
           <div v-if="installTargetTab === 'global'" class="install-tab-panel">
-            <p class="settings-hint">可多选，安装到用户主目录下的 Agent 全局 skill 路径。</p>
+            <p class="settings-hint">{{ t('install.globalHint') }}</p>
             <div v-if="selectedGlobalTargetIds.length" class="selection-count">
-              已选 {{ selectedGlobalTargetIds.length }} 个
+              {{ t('install.selected', { count: selectedGlobalTargetIds.length }) }}
             </div>
-            <div v-if="!globalTargets.length" class="empty-hint">暂无可用全局目录</div>
+            <div v-if="!globalTargets.length" class="empty-hint">{{ t('install.noGlobalDirs') }}</div>
             <template v-else>
               <div class="target-list-filter search-box">
                 <i class="fa-solid fa-magnifying-glass"></i>
                 <input
                   v-model="agentTargetFilter"
                   type="search"
-                  placeholder="筛选 Agent（名称或路径）..."
+                  :placeholder="t('search.agentFilter')"
                   @click.stop
                 />
               </div>
-              <div v-if="!filteredGlobalTargets.length" class="empty-hint">无匹配的 Agent</div>
+              <div v-if="!filteredGlobalTargets.length" class="empty-hint">{{ t('install.noAgentMatch') }}</div>
               <div v-else class="target-list">
               <div
                 v-for="target in filteredGlobalTargets"
@@ -1074,7 +1083,7 @@ onUnmounted(() => {
                   <div class="target-info-text">
                     <div class="target-name-row">
                       <p class="target-name">{{ target.name }}</p>
-                      <span v-if="target.exists" class="target-exists-badge">目录已存在</span>
+                      <span v-if="target.exists" class="target-exists-badge">{{ t('install.dirExists') }}</span>
                     </div>
                     <p class="target-path font-mono">{{ formatPath(target.path, 64) }}</p>
                   </div>
@@ -1087,12 +1096,12 @@ onUnmounted(() => {
             </template>
           </div>
 
-          <!-- Tab: 项目 Agent -->
+          <!-- Tab: project agents -->
           <div v-else-if="installTargetTab === 'project'" class="install-tab-panel">
-            <p class="settings-hint">第一步选择项目根目录，第二步勾选 Agent 在项目内的相对路径（可多选）。</p>
+            <p class="settings-hint">{{ t('install.projectHint') }}</p>
 
             <div class="project-step">
-              <label class="field-label step-label">① 项目根目录</label>
+              <label class="field-label step-label">{{ t('install.projectRoot') }}</label>
               <div class="project-root-picker">
                 <div class="target-option compact" :class="{ selected: installProjectRootPicked }">
                   <div class="target-info">
@@ -1101,31 +1110,31 @@ onUnmounted(() => {
                     </div>
                     <div class="target-info-text">
                       <p class="target-path font-mono">
-                        {{ installProjectRoot ? formatPath(installProjectRoot, 64) : '请选择项目根目录' }}
+                        {{ installProjectRoot ? formatPath(installProjectRoot, 64) : t('install.pickProject') }}
                       </p>
                     </div>
                   </div>
                   <button type="button" class="btn-ghost pick-dir-btn" @click="pickInstallProjectRoot">
-                    选择项目…
+                    {{ t('install.pickProjectBtn') }}
                   </button>
                 </div>
               </div>
             </div>
 
             <div class="project-step" :class="{ 'step-disabled': projectAgentStepDisabled }">
-              <label class="field-label step-label">② Agent 目录</label>
+              <label class="field-label step-label">{{ t('install.agentDirs') }}</label>
               <p v-if="projectAgentStepDisabled" class="settings-hint step-hint">
-                请先完成第一步，再勾选要写入的 Agent 目录。
+                {{ t('install.projectStepHint') }}
               </p>
               <p v-else-if="selectedProjectTargetIds.length" class="selection-count">
-                已选 {{ selectedProjectTargetIds.length }} 个 · 相对项目根
+                {{ t('install.selectedRelative', { count: selectedProjectTargetIds.length }) }}
               </p>
               <div class="target-list-filter search-box">
                 <i class="fa-solid fa-magnifying-glass"></i>
                 <input
                   v-model="agentTargetFilter"
                   type="search"
-                  placeholder="筛选 Agent（名称或路径）..."
+                  :placeholder="t('search.agentFilter')"
                   :disabled="projectAgentStepDisabled"
                   @click.stop
                 />
@@ -1134,7 +1143,7 @@ onUnmounted(() => {
                 v-if="!projectAgentStepDisabled && !filteredProjectTargets.length"
                 class="empty-hint"
               >
-                无匹配的 Agent
+                {{ t('install.noAgentMatch') }}
               </div>
               <div class="target-list">
                 <div
@@ -1157,7 +1166,7 @@ onUnmounted(() => {
                     <div class="target-info-text">
                       <div class="target-name-row">
                         <p class="target-name">{{ target.name }}</p>
-                        <span v-if="target.exists" class="target-exists-badge">目录已存在</span>
+                        <span v-if="target.exists" class="target-exists-badge">{{ t('install.dirExists') }}</span>
                       </div>
                       <p class="target-rel font-mono">{{ target.relPath }}</p>
                     </div>
@@ -1178,18 +1187,18 @@ onUnmounted(() => {
             </div>
           </div>
 
-          <!-- Tab: 自定义目录 -->
+          <!-- Tab: custom folders -->
           <div v-else class="install-tab-panel">
-            <p class="settings-hint">可添加多个文件夹，勾选要安装的目标（Skill 以子目录落地）。</p>
+            <p class="settings-hint">{{ t('install.customHint') }}</p>
             <div class="custom-dir-toolbar">
               <button type="button" class="btn-ghost pick-dir-btn" @click="pickCustomInstallDir">
-                <i class="fa-solid fa-plus"></i> 添加目录…
+                <i class="fa-solid fa-plus"></i> {{ t('install.addDir') }}
               </button>
               <span v-if="selectedCustomDirs.length" class="selection-count">
-                已选 {{ selectedCustomDirs.length }} 个
+                {{ t('install.selected', { count: selectedCustomDirs.length }) }}
               </span>
             </div>
-            <div v-if="!customDirOptions.length" class="empty-hint">请点击「添加目录」选择安装位置</div>
+            <div v-if="!customDirOptions.length" class="empty-hint">{{ t('install.addDirEmpty') }}</div>
             <div v-else class="target-list">
               <div
                 v-for="dir in customDirOptions"
@@ -1214,18 +1223,18 @@ onUnmounted(() => {
 
           <label class="label-row">
             <input v-model="installOverwrite" type="checkbox" />
-            覆盖已存在的同名目录
+            {{ t('install.overwrite') }}
           </label>
           <label v-if="installNestedWarn" class="label-row">
             <input v-model="installAcceptNested" type="checkbox" />
-            确认在 Agent skill 目录内嵌套安装
+            {{ t('install.nestedConfirm') }}
           </label>
         </div>
         <div class="modal-footer">
-          <button class="btn-ghost" @click="installModalOpen = false">取消</button>
+          <button class="btn-ghost" @click="installModalOpen = false">{{ t('install.cancel') }}</button>
           <button class="btn-primary" :disabled="installing || !canConfirmInstall" @click="confirmInstall">
             <i v-if="installing" class="fa-solid fa-circle-notch fa-spin"></i>
-            安装
+            {{ t('install.confirm') }}
           </button>
         </div>
       </div>
@@ -1237,34 +1246,34 @@ onUnmounted(() => {
         <div class="modal-header">
           <h3>
             <i class="fa-solid fa-rotate text-indigo"></i>
-            更新 / {{ updateSkill?.skillId }}
+            {{ t('update.title', { skillId: updateSkill?.skillId }) }}
           </h3>
           <button class="btn-icon" @click="updateModalOpen = false">
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
         <div class="modal-body">
-          <label class="field-label">版本</label>
+          <label class="field-label">{{ t('update.version') }}</label>
           <select v-model="updateSelectedVersion">
             <option v-for="(v, i) in updateVersions" :key="v.version" :value="v.version">
-              {{ v.version }}{{ i === 0 ? '（最新）' : '' }}
+              {{ v.version }}{{ i === 0 ? t('update.latest') : '' }}
             </option>
           </select>
 
           <div v-if="updateSelectedVersionDetail" class="version-detail">
             <p class="version-detail-row">
-              <span class="version-detail-label">提交人</span>
+              <span class="version-detail-label">{{ t('update.uploader') }}</span>
               <span class="version-detail-value font-mono">
                 @{{ versionUploaderLabel(updateSelectedVersionDetail) }}
               </span>
             </p>
             <p class="version-detail-changelog">
-              {{ updateSelectedVersionDetail.changelog || '暂无 changelog' }}
+              {{ updateSelectedVersionDetail.changelog || t('update.noChangelog') }}
             </p>
             <div class="version-detail-actions">
               <button type="button" class="btn-ghost version-detail-btn" @click="openUpdateVersionOnline('detail')">
                 <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                在线查看
+                {{ t('update.viewOnline') }}
               </button>
               <button
                 v-if="canOpenUpdateVersionDiff"
@@ -1273,13 +1282,13 @@ onUnmounted(() => {
                 @click="openUpdateVersionOnline('diff')"
               >
                 <i class="fa-solid fa-code-compare"></i>
-                对比当前安装版本
+                {{ t('update.compareInstalled') }}
               </button>
             </div>
           </div>
 
           <div v-if="updateInstallPaths.length > 1" style="margin-top: 1rem">
-            <label class="field-label">选择要更新的目录</label>
+            <label class="field-label">{{ t('update.pickDirs') }}</label>
             <label
               v-for="inst in updateInstallPaths"
               :key="inst.installPath"
@@ -1295,10 +1304,10 @@ onUnmounted(() => {
           </div>
         </div>
         <div class="modal-footer">
-          <button class="btn-ghost" @click="updateModalOpen = false">取消</button>
+          <button class="btn-ghost" @click="updateModalOpen = false">{{ t('update.cancel') }}</button>
           <button class="btn-primary" :disabled="updating" @click="confirmUpdate">
             <i v-if="updating" class="fa-solid fa-circle-notch fa-spin"></i>
-            更新
+            {{ t('update.confirm') }}
           </button>
         </div>
       </div>
@@ -1310,78 +1319,115 @@ onUnmounted(() => {
         <div class="modal-header">
           <h3>
             <i class="fa-solid fa-sliders text-indigo"></i>
-            连接设置
+            {{ t('settings.title') }}
           </h3>
           <button class="btn-icon" @click="settingsModalOpen = false">
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
         <div class="modal-body">
-          <p class="settings-hint settings-intro">
-            配置 Skill Base 服务端地址与 CLI 登录（与 skb 共用 ~/.skill-base/config.json）。在浏览器打开登录页获取验证码，在此换取 PAT。
+          <nav class="settings-tabs">
+            <button
+              type="button"
+              :class="{ active: settingsTab === 'general' }"
+              @click="settingsTab = 'general'"
+            >
+              <i class="fa-solid fa-gear"></i>
+              {{ t('settings.general') }}
+            </button>
+            <button
+              type="button"
+              :class="{ active: settingsTab === 'connection' }"
+              @click="settingsTab = 'connection'"
+            >
+              <i class="fa-solid fa-server"></i>
+              {{ t('settings.connection') }}
+            </button>
+          </nav>
+
+          <p v-if="settingsTab === 'general'" class="settings-hint settings-tab-hint">
+            {{ t('settings.generalHint') }}
+          </p>
+          <p v-else class="settings-hint settings-tab-hint">
+            {{ t('settings.connectionHint') }}
           </p>
 
-          <h4 class="settings-section-title">
-            <i class="fa-solid fa-server"></i>
-            Server Connection
-          </h4>
+          <div v-if="settingsTab === 'general'" class="settings-tab-panel">
+            <label class="field-label">{{ t('settings.language') }}</label>
+            <select class="locale-select" :value="locale" @change="onLocaleChange">
+              <option value="zh">中文</option>
+              <option value="en">English</option>
+            </select>
 
-          <label class="field-label">Server 根地址</label>
-          <div class="field-row">
-            <input v-model="registryUrl" type="text" class="font-mono" />
-            <button class="btn-ghost" @click="saveServer">保存</button>
+            <label class="field-label settings-field-spaced">{{ t('settings.theme') }}</label>
+            <select class="theme-select" disabled>
+              <option>{{ t('settings.themeComingSoon') }}</option>
+            </select>
+            <p class="settings-hint theme-hint">{{ t('settings.themeHint') }}</p>
           </div>
 
-          <a href="#" class="login-link" @click.prevent="openLoginPage">
-            <i class="fa-solid fa-arrow-up-right-from-square"></i>
-            在浏览器打开 CLI 登录页
-          </a>
+          <div v-else class="settings-tab-panel">
+            <label class="field-label">{{ t('settings.serverUrl') }}</label>
+            <div class="field-row">
+              <input v-model="registryUrl" type="text" class="font-mono" />
+              <button class="btn-ghost" @click="saveServer">{{ t('settings.save') }}</button>
+            </div>
 
-          <label class="field-label">8 位验证码</label>
-          <div class="field-row">
-            <input
-              v-model="verificationCode"
-              type="text"
-              placeholder="如 AB12-CD34"
-              class="font-mono"
-            />
-            <button
-              class="btn-ghost"
-              :disabled="isExchangingPat"
-              @click="exchangePat"
-            >
-              <i
-                class="fa-solid"
-                :class="isExchangingPat ? 'fa-circle-notch fa-spin' : 'fa-key'"
-              ></i>
-              换取 PAT
-            </button>
-          </div>
-          <p v-if="patReady" class="pat-status">
-            <span class="status-dot small"></span>
-            PAT 已就绪{{ config.username ? ` · ${config.username}` : '' }}
-          </p>
+            <a href="#" class="login-link" @click.prevent="openLoginPage">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+              {{ t('settings.openLogin') }}
+            </a>
 
-          <div class="settings-actions">
-            <button
-              class="btn-ghost"
-              :disabled="isTestingConnection"
-              @click="testConnection"
-            >
-              <i v-if="isTestingConnection" class="fa-solid fa-circle-notch fa-spin"></i>
-              验证连接
-            </button>
-            <button
-              v-if="patReady"
-              class="btn-ghost"
-              @click="logout"
-            >
-              退出登录
-            </button>
+            <label class="field-label">{{ t('settings.verificationCode') }}</label>
+            <div class="field-row">
+              <input
+                v-model="verificationCode"
+                type="text"
+                :placeholder="t('settings.codePlaceholder')"
+                class="font-mono"
+              />
+              <button
+                class="btn-ghost"
+                :disabled="isExchangingPat"
+                @click="exchangePat"
+              >
+                <i
+                  class="fa-solid"
+                  :class="isExchangingPat ? 'fa-circle-notch fa-spin' : 'fa-key'"
+                ></i>
+                {{ t('settings.exchangePat') }}
+              </button>
+            </div>
+            <p v-if="patReady" class="pat-status">
+              <span class="status-dot small"></span>
+              {{
+                config.username
+                  ? t('settings.patReadyUser', { username: config.username })
+                  : t('settings.patReady')
+              }}
+            </p>
+
+            <div class="settings-actions">
+              <button
+                class="btn-ghost"
+                :disabled="isTestingConnection"
+                @click="testConnection"
+              >
+                <i v-if="isTestingConnection" class="fa-solid fa-circle-notch fa-spin"></i>
+                {{ t('settings.testConnection') }}
+              </button>
+              <button
+                v-if="patReady"
+                class="btn-ghost"
+                @click="logout"
+              >
+                {{ t('settings.logout') }}
+              </button>
+            </div>
           </div>
         </div>
         <div class="modal-footer">
-          <button class="btn-ghost" @click="settingsModalOpen = false">关闭</button>
+          <button class="btn-ghost" @click="settingsModalOpen = false">{{ t('settings.close') }}</button>
         </div>
       </div>
     </div>
@@ -1392,7 +1438,7 @@ onUnmounted(() => {
         <div class="modal-header">
           <h3>
             <i class="fa-solid fa-folder-tree text-indigo"></i>
-            安装路径 / {{ pathsModalSkill?.name || pathsModalSkill?.skillId }}
+            {{ t('paths.title', { name: pathsModalSkill?.name || pathsModalSkill?.skillId }) }}
           </h3>
           <button class="btn-icon" @click="pathsModalOpen = false">
             <i class="fa-solid fa-xmark"></i>
@@ -1400,7 +1446,7 @@ onUnmounted(() => {
         </div>
         <div class="modal-body">
           <p class="settings-hint" style="margin-top: 0">
-            共 {{ pathsModalSkill?.installs?.length || 0 }} 个目录
+            {{ t('paths.count', { count: pathsModalSkill?.installs?.length || 0 }) }}
           </p>
           <ul class="paths-list">
             <li v-for="inst in pathsModalSkill?.installs || []" :key="inst.installPath">
@@ -1419,7 +1465,7 @@ onUnmounted(() => {
           </ul>
         </div>
         <div class="modal-footer">
-          <button class="btn-ghost" @click="pathsModalOpen = false">关闭</button>
+          <button class="btn-ghost" @click="pathsModalOpen = false">{{ t('paths.close') }}</button>
         </div>
       </div>
     </div>
@@ -2304,24 +2350,75 @@ button.dir-tag {
   width: min(32rem, 94vw);
 }
 
-.settings-intro {
-  margin-top: 0;
+.settings-tabs {
+  display: flex;
+  gap: 0.375rem;
+  margin-bottom: 0.75rem;
+  padding: 0.25rem;
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 0.5rem;
+  border: 1px solid #334155;
 }
 
-.settings-section-title {
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: #e2e8f0;
-  margin: 0 0 1rem;
+.settings-tabs button {
+  flex: 1;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: 0.375rem;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.settings-section-title i {
-  color: #818cf8;
+.settings-tabs button:hover {
+  color: #e2e8f0;
+  background: rgba(51, 65, 85, 0.4);
+}
+
+.settings-tabs button.active {
+  color: #c7d2fe;
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.35);
+  box-shadow: inset 0 0 12px rgba(99, 102, 241, 0.08);
+}
+
+.settings-tabs button i {
+  font-size: 0.8125rem;
+}
+
+.settings-tab-hint {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.settings-tab-panel {
+  min-height: 10rem;
+}
+
+.settings-field-spaced {
+  margin-top: 1rem;
+}
+
+.theme-hint {
+  margin-top: 0.375rem;
+  margin-bottom: 0;
+}
+
+.locale-select,
+.theme-select {
+  margin-bottom: 0.75rem;
+}
+
+.theme-select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .settings-hint {
