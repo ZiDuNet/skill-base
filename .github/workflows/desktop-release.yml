@@ -30,22 +30,22 @@ jobs:
             label: macOS DMG
             node_target: darwin-arm64
             tauri_bundles: dmg
-            artifact-name: desktop-macos
-            upload-path: desktop-tauri/src-tauri/target/release/bundle/dmg/*.dmg
+            artifact-name: skillbase-macos
+            upload-path: desktop-tauri/src-tauri/target/release/bundle/dmg/SkillBase-*-macos.dmg
           - os: windows-latest
             label: Windows NSIS
             node_target: win-x64
             tauri_bundles: nsis
-            artifact-name: desktop-windows
-            upload-path: desktop-tauri/src-tauri/target/release/bundle/nsis/*.exe
+            artifact-name: skillbase-windows
+            upload-path: desktop-tauri/src-tauri/target/release/bundle/nsis/SkillBase-*-windows-setup.exe
           - os: ubuntu-latest
             label: Linux packages
             node_target: linux-x64
             tauri_bundles: appimage,deb
-            artifact-name: desktop-linux
+            artifact-name: skillbase-linux
             upload-path: |
-              desktop-tauri/src-tauri/target/release/bundle/appimage/*.AppImage
-              desktop-tauri/src-tauri/target/release/bundle/deb/*.deb
+              desktop-tauri/src-tauri/target/release/bundle/appimage/SkillBase-*-linux.AppImage
+              desktop-tauri/src-tauri/target/release/bundle/deb/SkillBase-*-linux.deb
 
     steps:
       - name: Checkout
@@ -275,6 +275,34 @@ jobs:
           APPLE_SIGNING_IDENTITY: "-"
         run: pnpm exec tauri build --bundles ${{ matrix.tauri_bundles }}
 
+      - name: Rename installers (SkillBase branding)
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION=$(node -pe "JSON.parse(require('fs').readFileSync('src-tauri/tauri.conf.json','utf8')).version")
+          shopt -s nullglob
+          case "${{ runner.os }}" in
+            macOS)
+              for f in src-tauri/target/release/bundle/dmg/*.dmg; do
+                mv "$f" "src-tauri/target/release/bundle/dmg/SkillBase-${VERSION}-macos.dmg"
+              done
+              ;;
+            Windows)
+              for f in src-tauri/target/release/bundle/nsis/*.exe; do
+                mv "$f" "src-tauri/target/release/bundle/nsis/SkillBase-${VERSION}-windows-setup.exe"
+              done
+              ;;
+            Linux)
+              for f in src-tauri/target/release/bundle/appimage/*.AppImage; do
+                mv "$f" "src-tauri/target/release/bundle/appimage/SkillBase-${VERSION}-linux.AppImage"
+              done
+              for f in src-tauri/target/release/bundle/deb/*.deb; do
+                mv "$f" "src-tauri/target/release/bundle/deb/SkillBase-${VERSION}-linux.deb"
+              done
+              ;;
+          esac
+          find src-tauri/target/release/bundle -type f \( -name 'SkillBase-*' -o -name '*.dmg' -o -name '*.exe' -o -name '*.AppImage' -o -name '*.deb' \) | sort
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -291,7 +319,7 @@ jobs:
       - name: Download all platform installers
         uses: actions/download-artifact@v4
         with:
-          pattern: desktop-*
+          pattern: skillbase-*
           path: installers
           merge-multiple: true
 
