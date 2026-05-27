@@ -1,0 +1,37 @@
+import { defineConfig } from 'vite';
+import vue from '@vitejs/plugin-vue';
+import path from 'node:path';
+
+const host = process.env.TAURI_DEV_HOST;
+
+export default defineConfig({
+  plugins: [vue()],
+  resolve: {
+    alias: {
+      '@desktop': path.resolve(import.meta.dirname, '../desktop/src')
+    }
+  },
+  clearScreen: false,
+  server: {
+    port: 5174,
+    strictPort: true,
+    host: host || false,
+    hmr: host
+      ? {
+          protocol: 'ws',
+          host,
+          port: 5175
+        }
+      : undefined,
+    watch: {
+      ignored: ['**/src-tauri/**']
+    }
+  },
+  envPrefix: ['VITE_', 'TAURI_'],
+  build: {
+    target: process.env.TAURI_PLATFORM === 'windows' ? 'chrome105' : 'safari13',
+    minify: !process.env.TAURI_DEBUG ? 'esbuild' : false,
+    sourcemap: !!process.env.TAURI_DEBUG,
+    outDir: 'dist'
+  }
+});

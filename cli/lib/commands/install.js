@@ -1,14 +1,14 @@
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import chalk from 'chalk';
 import ora from 'ora';
-import extract from 'extract-zip';
 import prompts from 'prompts';
-import { createClient } from '../api.js';
 import { detectInsideIdeDir, resolveInstallDir, getIdeChoices, getSupportedIdeIds, IDE_CONFIGS } from '../ide.js';
 import { rememberSkillInstall } from '../installs.js';
+import { downloadAndExtract } from '../download-and-extract.mjs';
 import { pickMessage, lang } from '../i18n.js';
+
+export { downloadAndExtract };
 
 const M = {
   noVersion: {
@@ -45,40 +45,6 @@ const M = {
 function pickFn(obj, arg) {
   const fn = obj[lang] || obj.en;
   return typeof fn === 'function' ? fn(arg) : '';
-}
-
-export async function downloadAndExtract(skillId, version, targetDir) {
-  const client = createClient();
-
-  const skillInfo = await client.get(`/skills/${encodeURIComponent(skillId)}`);
-
-  const actualVersion = version === 'latest' ? skillInfo.latest_version : version;
-
-  if (!actualVersion) {
-    throw new Error(pickFn(M.noVersion, skillId));
-  }
-
-  const response = await client.download(
-    `/skills/${encodeURIComponent(skillId)}/versions/${encodeURIComponent(actualVersion)}/download`
-  );
-
-  const arrayBuffer = await response.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
-
-  const tmpZip = path.join(os.tmpdir(), `skb-${skillId}-${actualVersion}-${Date.now()}.zip`);
-  fs.writeFileSync(tmpZip, buffer);
-
-  fs.mkdirSync(targetDir, { recursive: true });
-
-  await extract(tmpZip, { dir: path.resolve(targetDir) });
-
-  try {
-    fs.unlinkSync(tmpZip);
-  } catch (e) {
-    // ignore
-  }
-
-  return { skillId, version: actualVersion, targetDir };
 }
 
 export default async function install(target, options) {

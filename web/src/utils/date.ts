@@ -1,5 +1,14 @@
 export type DateFormatLocale = 'zh' | 'en'
 
+/** SQLite datetime('now') 返回 UTC 但不带 Z，补上后缀让 JS 识别为 UTC */
+export function parseUtcDateString(dateStr: string): Date {
+  const normalized =
+    dateStr.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(dateStr)
+      ? dateStr
+      : dateStr.replace(' ', 'T') + 'Z'
+  return new Date(normalized)
+}
+
 /**
  * 相对时间：24 小时内用秒/分/小时，避免「今天」掩盖真实间隔
  */
@@ -9,11 +18,7 @@ export function formatDate(
 ): string {
   if (!dateStr) return ''
 
-  // SQLite datetime('now') 返回 UTC 但不带 Z，补上后缀让 JS 识别为 UTC
-  const normalized = dateStr.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(dateStr)
-    ? dateStr
-    : dateStr + 'Z'
-  const date = new Date(normalized)
+  const date = parseUtcDateString(dateStr)
   const now = new Date()
   const diffMs = now.getTime() - date.getTime()
 
@@ -57,16 +62,11 @@ export function formatDate(
 
 /**
  * 格式化日期为完整格式
- * @param dateStr - 日期字符串
- * @returns 格式化后的完整日期字符串
  */
 export function formatDateFull(dateStr: string | null | undefined): string {
   if (!dateStr) return ''
 
-  const normalized = dateStr.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(dateStr)
-    ? dateStr
-    : dateStr + 'Z'
-  const date = new Date(normalized)
+  const date = parseUtcDateString(dateStr)
   return date.toLocaleString('zh-CN', {
     year: 'numeric',
     month: 'short',

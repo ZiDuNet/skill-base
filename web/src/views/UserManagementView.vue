@@ -645,6 +645,7 @@ import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import { usersApi, skillsApi, collaboratorsApi, type User, type Skill, type Tag } from '@/services/api'
 import { useI18n } from '@/composables/useI18n'
 import { globalToast } from '@/composables/useToast'
+import { parseUtcDateString } from '@/utils/date'
 
 const { t, currentLang } = useI18n()
 
@@ -868,7 +869,7 @@ async function handleEditUser() {
 
 // 日期格式化
 function formatDate(dateStr: string) {
-  const date = new Date(dateStr)
+  const date = parseUtcDateString(dateStr)
   return date.toLocaleDateString(currentLang.value === 'zh' ? 'zh-CN' : 'en-US', {
     year: 'numeric',
     month: '2-digit',
