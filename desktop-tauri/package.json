@@ -1,0 +1,35 @@
+{
+  "name": "skill-base-desktop-tauri",
+  "version": "0.1.0",
+  "description": "Skill Base Desktop (Tauri) — 本地 Agent Skill 管理客户端",
+  "private": true,
+  "type": "module",
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild"]
+  },
+  "scripts": {
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "dev:vite": "vite",
+    "dev:bridge": "node bridge/server.mjs",
+    "prepare:resources": "node scripts/prepare-resources.mjs",
+    "bundle:bridge": "node scripts/bundle-bridge.mjs",
+    "smoke:bridge": "node scripts/smoke-bridge.mjs",
+    "smoke:channels": "node scripts/smoke-bridge.mjs --all",
+    "verify:ipc": "node scripts/verify-ipc-parity.mjs",
+    "preview": "vite preview",
+    "postinstall": "pnpm install --dir ../cli"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.2.0",
+    "@tauri-apps/plugin-dialog": "^2.2.0",
+    "@tauri-apps/plugin-opener": "^2.2.0",
+    "vue": "^3.5.13"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.2.0",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "esbuild": "^0.25.0",
+    "vite": "^6.0.7"
+  }
+}

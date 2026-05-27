@@ -80,6 +80,37 @@ async function usersRoutes(fastify, options) {
     return reply.code(201).send({ ok: true, user });
   });
 
+  // GET /:user_id/skill-collaborations — skill_collaborators 中与该用户相关的技能（管理员；供用户管理 UI）
+  // 须早于 GET /:user_id
+  fastify.get('/:user_id/skill-collaborations', async (request, reply) => {
+    const userId = parseInt(request.params.user_id, 10);
+    if (!userId) {
+      return reply.code(400).send({ ok: false, error: 'invalid_params', detail: 'Invalid user id' });
+    }
+    const user = UserModel.findById(userId);
+    if (!user) {
+      return reply.code(404).send({ ok: false, error: 'not_found', detail: 'User not found' });
+    }
+    const rows = db
+      .prepare(
+        `
+        SELECT sc.skill_id, sc.role, s.name AS skill_name
+        FROM skill_collaborators sc
+        JOIN skills s ON s.id = sc.skill_id
+        WHERE sc.user_id = ?
+        ORDER BY s.name COLLATE NOCASE ASC
+      `
+      )
+      .all(userId);
+    return {
+      collaborations: rows.map((r) => ({
+        skill_id: r.skill_id,
+        name: r.skill_name,
+        role: r.role,
+      })),
+    };
+  });
+
   // GET /:user_id - User details
   fastify.get('/:user_id', async (request, reply) => {
     const { user_id } = request.params;

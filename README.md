@@ -14,6 +14,10 @@
   <img src="https://github.com/ginuim/skill-base/raw/main/docs/images/demo.gif" alt="Skill Base demo" />
 </p>
 
+<p align="center">
+  <img src="https://github.com/ginuim/skill-base/raw/main/docs/images/desktop-market.png" alt="Skill Base desktop — Skill Market" width="720" />
+</p>
+
 ## Skill Base solves distribution, not “file storage”
 
 Many teams already write Skills, but the usual pattern is still to drop them into `.cursor/skills`, `.claude/skills`, `.github/instructions`, and sync via Git. That works until the team grows—and then it hurts.
@@ -86,7 +90,7 @@ This repository maintains two assistant-oriented Skills under `skills/`, both pu
 
 | Skill | Role |
 |-------|------|
-| **`skill-base-cli`** | Guide the assistant to run **`skb`** from the terminal: `init`, `login`, `search`, `install`, `update`, `publish`, etc., against your Skill Base site. |
+| **`skill-base-cli`** | Guide the assistant to run **`skb`** from the terminal: `init`, `login`, `whoami`, `search`, `install`, `update`, `publish`, etc., against your Skill Base site. |
 | **`skill-base-web-deploy`** | Guide the assistant to deploy, start, or operate the **Skill Base server** (`npx skill-base`, Docker, ports, data directory, backups, etc.). |
 
 In **OpenClaw-class** products, you can have Claw install the Skill(s) you need from ClawHub into the assistant’s skills directory (same idea as pulling skill packages from a marketplace). After installation, a typical private Skill Base loop looks like this:
@@ -126,7 +130,7 @@ skb publish ./my-skill --changelog "API auth rules updated"
 
 PMs, QA, and colleagues who prefer not to use the CLI can search, browse versions, and download packages in the web UI. Team knowledge should not only serve people who write code.
 
-The web UI also supports account-based favorites, download counters, and an optional global tag library (managed by the super admin). Inline previews use a dedicated `/view` endpoint so browsing a version ZIP does not inflate download statistics.
+The web UI also supports account-based favorites, download counters, and an optional global tag library. Super admins manage tags under **Tag management** in the user menu (`/admin/tags`). On the home directory, a compact **Tags** filter (multi-select, OR semantics) narrows the skill list using tags present on visible skills. Skill owners and collaborators assign tags on the skill detail page from that library. Inline previews use a dedicated `/view` endpoint so browsing a version ZIP does not inflate download statistics.
 
 Visibility is built into the data model:
 
@@ -232,6 +236,8 @@ skb init -s http://your-team-server
 skb login
 ```
 
+To confirm the saved token still works against that server: `skb whoami` (or `skb whoami --json` / `skb whoami -q` for scripts).
+
 ### 4. Install, update, publish
 
 ```bash
@@ -336,6 +342,33 @@ For people who avoid the CLI, the web UI supports:
 **CLI:** `skb import-github owner/repo` (alias `skb import`) with `--ref`, `--subpath`, `--target`, `--changelog`, and `--dry-run` for preview-only JSON.
 
 That is what “team edition” means—not everyone must learn Git first.
+
+## Desktop clients
+
+Prefer a native app over the browser or terminal? The desktop client connects to your Skill Base server, browses the team catalog, and installs or updates skills into the right folders for Cursor, Claude Code, Codex, Qoder, and other agents—without hand-copying paths.
+
+**Download (CI builds from `main`):** [GitHub Releases → desktop-latest](https://github.com/ginuim/skill-base/releases/tag/desktop-latest) — macOS `.dmg`, Windows `.exe` (NSIS), Linux `.AppImage` / `.deb`. End users do not need Node.js installed.
+
+| Directory | Stack | Status | Build |
+|-----------|-------|--------|-------|
+| `desktop-tauri/` | Tauri 2 + bundled Node 20 bridge | **Recommended** | `pnpm install && pnpm build` |
+| `desktop/` | Electron | Legacy (maintenance) | `pnpm install && pnpm run dist` |
+
+**Skill Market** — search team skills, favorites, and install from the grid (same server as the web UI).
+
+<p align="center">
+  <img src="https://github.com/ginuim/skill-base/raw/main/docs/images/desktop-local.png" alt="Skill Base desktop — Local Assets" width="720" />
+</p>
+
+**Local Assets** — one view of every on-disk copy of a skill across agent directories, with up-to-date / update-available status.
+
+**Install** — choose global agents, project agents, or custom folders; optionally overwrite an existing folder with the same name.
+
+<p align="center">
+  <img src="https://github.com/ginuim/skill-base/raw/main/docs/images/desktop-install.png" alt="Skill Base desktop — Install to agents" width="720" />
+</p>
+
+CI: [`.github/workflows/desktop-release.yml`](.github/workflows/desktop-release.yml) builds Tauri on every push to `main` and updates the `desktop-latest` release. See [desktop-tauri/README.md](desktop-tauri/README.md) for dev/build/troubleshooting and [desktop-tauri/ACCEPTANCE.md](desktop-tauri/ACCEPTANCE.md) for the 21-channel parity checklist. Electron deprecation notes: [desktop/DEPRECATED.md](desktop/DEPRECATED.md).
 
 ## Deployment and backup
 

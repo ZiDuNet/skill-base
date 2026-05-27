@@ -3,6 +3,7 @@
  * Based on static/js/i18n.js
  */
 import { ref, computed } from 'vue'
+import type { DateFormatLocale } from '@/utils/date'
 
 // Translation tables from static/js/i18n.js
 const zh: Record<string, string> = {
@@ -88,6 +89,10 @@ const zh: Record<string, string> = {
   'index.favorited': '已收藏',
   'index.favoriteCount': '收藏',
   'index.downloadCount': '下载',
+  'index.tagsFilter': '标签',
+  'index.tagsFilterHint': '可多选',
+  'index.clearTags': '清除标签',
+  'index.noFilterMatch': '没有符合当前筛选条件的 Skill',
 
   // Skill detail page
   'skill.title': 'Skill 详情 - Skill Base',
@@ -129,7 +134,7 @@ const zh: Record<string, string> = {
   'skill.favoriteCount': '收藏',
   'skill.downloadCount': '下载',
   'skill.editTags': '编辑标签',
-  'skill.noTags': '暂无可用标签',
+  'skill.noTags': '暂无可用标签，请联系超级管理员添加标签',
   'skill.tagsLoadFailed': '加载标签失败',
   'skill.tagsSaveSuccess': '标签已保存',
   'skill.tagsSaveFailed': '保存标签失败',
@@ -457,6 +462,16 @@ const zh: Record<string, string> = {
   'admin.resetting': '重置中...',
   'admin.getUserFailed': '获取用户信息失败',
   'admin.loadUsersFailed': '加载用户列表失败',
+  'admin.tabBasic': '基本信息',
+  'admin.tabSkills': '协作技能',
+  'admin.skillsLabel': '协作技能',
+  'admin.skillsHintEdit': '点击切换协作者关系（立即保存）。技能所有者行不可取消，请先在技能详情中转让所有权。',
+  'admin.skillsHintAdd': '勾选后，在用户创建成功后将该用户加入对应技能的协作者。',
+  'admin.skillsEmpty': '暂无技能，请先在平台创建或导入技能。',
+  'admin.skillsFilterPlaceholder': '按技能名称筛选…',
+  'admin.skillsNoMatch': '无匹配技能',
+  'admin.skillMembershipError': '更新技能协作者失败',
+  'admin.skillOwnerLocked': '该用户是此技能的所有者，无法在此移除',
 
   // Admin - Tag library (super admin)
   'tagAdmin.title': '标签管理 - Skill Base',
@@ -567,6 +582,10 @@ const en: Record<string, string> = {
   'index.favorited': 'Favorited',
   'index.favoriteCount': 'favorites',
   'index.downloadCount': 'downloads',
+  'index.tagsFilter': 'Tags',
+  'index.tagsFilterHint': 'Multi-select',
+  'index.clearTags': 'Clear tags',
+  'index.noFilterMatch': 'No skills match the current filters',
 
   // Skill detail page
   'skill.title': 'Skill Detail - Skill Base',
@@ -608,7 +627,7 @@ const en: Record<string, string> = {
   'skill.favoriteCount': 'favorites',
   'skill.downloadCount': 'downloads',
   'skill.editTags': 'Edit Tags',
-  'skill.noTags': 'No tags available',
+  'skill.noTags': 'No tags available, contact a super admin to add tags.',
   'skill.tagsLoadFailed': 'Failed to load tags',
   'skill.tagsSaveSuccess': 'Tags saved',
   'skill.tagsSaveFailed': 'Failed to save tags',
@@ -936,6 +955,16 @@ const en: Record<string, string> = {
   'admin.resetting': 'Resetting...',
   'admin.getUserFailed': 'Failed to get user info',
   'admin.loadUsersFailed': 'Failed to load user list',
+  'admin.tabBasic': 'Basic',
+  'admin.tabSkills': 'Skills',
+  'admin.skillsLabel': 'Collaborator skills',
+  'admin.skillsHintEdit': 'Click a row to add or remove collaborator access (saved immediately). Owner rows cannot be removed here; transfer ownership on the skill first.',
+  'admin.skillsHintAdd': 'Selected skills add this user as a collaborator after the account is created successfully.',
+  'admin.skillsEmpty': 'No skills yet. Create or import a skill first.',
+  'admin.skillsFilterPlaceholder': 'Filter by skill name…',
+  'admin.skillsNoMatch': 'No matching skills',
+  'admin.skillMembershipError': 'Failed to update skill collaborators',
+  'admin.skillOwnerLocked': 'This user owns this skill; remove or transfer ownership on the skill page first',
 
   'tagAdmin.title': 'Tags - Skill Base',
   'tagAdmin.heading': 'Tag library',
@@ -995,7 +1024,7 @@ if (_storedLang === 'zh' || _storedLang === 'en') {
   isChinese = _browserLang.startsWith('zh')
 }
 
-const currentLang = ref(isChinese ? 'zh' : 'en')
+const currentLang = ref<DateFormatLocale>(isChinese ? 'zh' : 'en')
 
 export function useI18n() {
   const t = (key: string, params?: Record<string, string | number>): string => {
@@ -1025,7 +1054,7 @@ export function useI18n() {
 
   return {
     t,
-    currentLang: computed(() => currentLang.value),
+    currentLang: computed((): DateFormatLocale => currentLang.value),
     setLang,
   }
 }

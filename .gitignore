@@ -9,5 +9,5 @@ data
 .cursor/
 .pnpm-store/
 static/
-scripts/
+/scripts/
 promo-video/

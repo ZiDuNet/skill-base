@@ -299,6 +299,12 @@ export const collaboratorsApi = {
 
 // ===== Users API =====
 
+export interface UserSkillCollaboration {
+  skill_id: string
+  name: string
+  role: 'owner' | 'collaborator'
+}
+
 export const usersApi = {
   /** 省略 q 或空字符串：全部活跃用户（服务端上限 2000）；有 q：模糊搜索（上限 100） */
   search: (q?: string) => {
@@ -307,12 +313,14 @@ export const usersApi = {
   },
   list: () => apiGet<{ users: User[] }>('/users'),
   create: (data: { username: string; password: string; name?: string; email?: string; role?: string }) =>
-    apiPost<User>('/users', data),
+    apiPost<{ ok: boolean; user: User }>('/users', data),
   update: (id: number, data: { name?: string; email?: string; role?: string; status?: string }) =>
     apiPatch<User>(`/users/${id}`, data),
   resetPassword: (id: number, new_password: string) =>
     apiPost(`/users/${id}/reset-password`, { new_password }),
   delete: (id: number) => apiDelete(`/users/${id}`),
+  listUserSkillCollaborations: (userId: number) =>
+    apiGet<{ collaborations: UserSkillCollaboration[] }>(`/users/${userId}/skill-collaborations`),
 }
 
 // ===== Init API =====
